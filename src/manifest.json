@@ -1,0 +1,26 @@
+{
+    "name" : "Stuffing",
+    "description" : "Sketch data supplier plugin.",
+    "author" : "Ashung Hung",
+    "authorEmail" : "ashung.hung@foxmail.com",
+    "homepage" : "https://github.com/Ashung/Stuffing",
+    "identifier" : "com.ashung.hung.stuffing",
+    "version" : "1.0",
+    "icon": "icon.png",
+    "appcast": "https://ashung.github.io/Stuffing/appcast.xml",
+    "commands": [
+        {
+            "script": "main.js",
+            "handlers": {
+                "actions": {
+                    "Startup": "onStartup",
+                    "Shutdown": "onShutdown",
+                    "SupplyNames" : "onSupplyNames"
+                }
+            }
+        },
+        {
+
+        }
+    ]
+}

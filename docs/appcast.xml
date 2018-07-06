@@ -1,0 +1,19 @@
+---
+version: 1.0
+---
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Stuffing</title>
+        <link>https://ashung.github.io/Stuffing/appcast.xml</link>
+        <description>Sketch data supplier plugin.</description>
+        <language>en</language>
+        <item>
+            <title>V{{ page.version }}</title>
+            <enclosure
+                url="https://github.com/Ashung/Stuffing/archive/{{ page.version }}.zip"
+                sparkle:version="{{ page.version }}"
+                type="application/octet-stream"/>
+        </item>
+    </channel>
+</rss>
