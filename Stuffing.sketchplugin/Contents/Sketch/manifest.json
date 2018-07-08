@@ -15,12 +15,9 @@
                 "actions": {
                     "Startup": "onStartup",
                     "Shutdown": "onShutdown",
-                    "SupplyNames" : "onSupplyNames"
+                    "SupplyNames": "onSupplyNames"
                 }
             }
-        },
-        {
-
         }
     ]
 }
