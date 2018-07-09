@@ -27,11 +27,22 @@ const DATA_CHINESE_SOLARTERMS = [
 ];
 
 // http://xh.5156edu.com/page/z2935m5238j19378.html
-const DATA_CHINESE_LICENSE_PLATE_NUMBER = [
-    "京" "acefhg0",
-        "津" "abce"
-        "沪" "avdc"
+const DATA_CHINSE_PROVINCES = [
+    "北京市","天津市","上海市","重庆市","河北省","河南省","云南省","辽宁省","黑龙江省","湖南省","安徽省","山东省","新疆","江苏省", "浙江省",
+    "江西省","湖北省","广西","甘肃省","山西省","内蒙古","陕西省","吉林省","福建省","贵州省","广东省","青海省","西藏","四川省","宁夏","海南省"
+];
 
+const DATA_CHINSE_PROVINCES_ABBR = [
+    "京","津","沪","渝","冀","豫","云","辽","黑","湘","皖","鲁","新","苏","浙","赣","鄂","桂","甘","晋","蒙","陕","吉","闽",
+    "贵","粤","青","藏","川","宁","琼"
+];
+
+const DATA_CHINESE_LICENSE_PLATE_NUMBER_PREFIX = [
+    "ACEFHG","ABCE","ABDC","ABCFGH","ABCDEFGHJRT","ABCDEFGHJKLMNPQRSU","ACDEFGHJKLMNPQRS","ABCDEFGHJKLMNPV",
+    "ABCDEFGHJKLMNPR","ABCDEFGHJKLMNUS","ABCDEFGHJKLMNPQRS","ABCDEFGHJKLMNPQRSUVY","ABCDEFGHJKLMNPQR","ABCDEFGHJKLMN",
+    "ABCDEFGHJKL","ABCDEFGHJKLM","ABCDEFGHJKLMNPQRS","ABCDEFGHJKLMNPR","ABCDEFGHJKLMNP","ABCDEFHJKLM","ABCDEFGHJKLM",
+    "ABCDEFGHJKV","ABCDEFGHJ","ABCDEFGHJK","ABCDEFGHJ","ABCDEFGHJKLMNPQRSTUVWXYZ","ABCDEFGH","ABCDEFGHJ",
+    "ABCDEFHJKLMMQRSTUVWXYZ","ABCD","ABCDE"
 ];
 
 const DATA_CHINESE_LASTNAMES =  [
