@@ -26,12 +26,40 @@ const DATA_CHINESE_SOLARTERMS = [
     "立秋","处暑","白露","秋分","寒露","霜降","立冬","小雪","大雪","冬至","小寒","大寒"
 ];
 
-// http://xh.5156edu.com/page/z2935m5238j19378.html
-const DATA_CHINESE_LICENSE_PLATE_NUMBER = [
-    "京" "acefhg0",
-        "津" "abce"
-        "沪" "avdc"
-
+const DATA_CHINA_PROVINCES = [
+    {"full":"北京市","abbr":"京","license_place_number":"ACEFHG"},
+    {"full":"天津市","abbr":"津","license_place_number":"ABCE"},
+    {"full":"上海市","abbr":"沪","license_place_number":"ABDC"},
+    {"full":"重庆市","abbr":"渝","license_place_number":"ABCFGH"},
+    {"full":"河北省","abbr":"冀","license_place_number":"ABCDEFGHJRT"},
+    {"full":"河南省","abbr":"豫","license_place_number":"ABCDEFGHJKLMNPQRSU"},
+    {"full":"云南省","abbr":"云","license_place_number":"ACDEFGHJKLMNPQRS"},
+    {"full":"辽宁省","abbr":"辽","license_place_number":"ABCDEFGHJKLMNPV"},
+    {"full":"黑龙江省","abbr":"黑","license_place_number":"ABCDEFGHJKLMNPR"},
+    {"full":"湖南省","abbr":"湘","license_place_number":"ABCDEFGHJKLMNUS"},
+    {"full":"安徽省","abbr":"皖","license_place_number":"ABCDEFGHJKLMNPQRS"},
+    {"full":"山东省","abbr":"鲁","license_place_number":"ABCDEFGHJKLMNPQRSUVY"},
+    {"full":"新疆","abbr":"新","license_place_number":"ABCDEFGHJKLMNPQR"},
+    {"full":"江苏省","abbr":"苏","license_place_number":"ABCDEFGHJKLMN"},
+    {"full":"浙江省","abbr":"浙","license_place_number":"ABCDEFGHJKL"},
+    {"full":"江西省","abbr":"赣","license_place_number":"ABCDEFGHJKLM"},
+    {"full":"湖北省","abbr":"鄂","license_place_number":"ABCDEFGHJKLMNPQRS"},
+    {"full":"广西","abbr":"桂","license_place_number":"ABCDEFGHJKLMNPR"},
+    {"full":"甘肃省","abbr":"甘","license_place_number":"ABCDEFGHJKLMNP"},
+    {"full":"山西省","abbr":"晋","license_place_number":"ABCDEFHJKLM"},
+    {"full":"内蒙古","abbr":"蒙","license_place_number":"ABCDEFGHJKLM"},
+    {"full":"陕西省","abbr":"陕","license_place_number":"ABCDEFGHJKV"},
+    {"full":"吉林省","abbr":"吉","license_place_number":"ABCDEFGHJ"},
+    {"full":"福建省","abbr":"闽","license_place_number":"ABCDEFGHJK"},
+    {"full":"贵州省","abbr":"贵","license_place_number":"ABCDEFGHJ"},
+    {"full":"广东省","abbr":"粤","license_place_number":"ABCDEFGHJKLMNPQRSTUVWXYZ"},
+    {"full":"青海省","abbr":"青","license_place_number":"ABCDEFGH"},
+    {"full":"西藏","abbr":"藏","license_place_number":"ABCDEFGHJ"},
+    {"full":"四川省","abbr":"川","license_place_number":"ABCDEFHJKLMMQRSTUVWXYZ"},
+    {"full":"宁夏","abbr":"宁","license_place_number":"ABCD"},
+    {"full":"海南省","abbr":"琼","license_place_number":"ABCDE"},
+    {"full":"香港","abbr":"琼"},
+    {"full":"澳门","abbr":"澳"},
 ];
 
 const DATA_CHINESE_LASTNAMES =  [
@@ -414,13 +442,4 @@ const DATA_WEEKDAYS_ABBR = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const DATA_MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const DATA_MONTHS_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-// let r = ""
-// for (let i = 0; i < 100; i++) {
-//     let random = Math.floor(Math.pow(1000, Math.random() - 1) * DATA_CHINESE_LASTNAMES.length)
-//     r += "," + (DATA_CHINESE_LASTNAMES[random])
-// }
-
-// console.log(DATA_ENGLISH_FIRSTNAMES[1].length)
-
 
