@@ -5,9 +5,10 @@
     "authorEmail" : "ashung.hung@foxmail.com",
     "homepage" : "https://github.com/Ashung/Stuffing",
     "identifier" : "com.ashung.hung.stuffing",
-    "version" : "1.0",
+    "suppliesData" : true,
+    "version" : "0.4",
     "icon": "icon.png",
-    "appcast": "https://ashung.github.io/Stuffing/appcast.xml",
+    "appcast": "https://ashung.github.io/Sketch-Stuffing/appcast.xml",
     "commands": [
         {
             "script": "main.js",
@@ -15,7 +16,24 @@
                 "actions": {
                     "Startup": "onStartup",
                     "Shutdown": "onShutdown",
-                    "SupplyNames": "onSupplyNames"
+
+                    "SupplyMonths": "onSupplyMonths",
+                    "SupplyWeekdays": "onSupplyWeekdays",
+                    "SupplyDays": "onSupplyDays",
+                    "SupplyShortWeekdays": "onSupplyShortWeekdays",
+                    "SupplyNarrowWeekdays": "onSupplyNarrowWeekdays",
+                    "SupplyFullNames": "onSupplyFullNames",
+                    "SupplyMaleFullNames": "onSupplyMaleFullNames",
+                    "SupplyFemaleFullNames": "onSupplyFemaleFullNames",
+                    "SupplyProvinces": "onSupplyProvinces",
+                    "SupplyCities": "onSupplyCities",
+                    "SupplyMobileNumbers": "onSupplyMobileNumbers",
+                    "SupplyPhoneNumbers": "onSupplyPhoneNumbers",
+                    "SupplyCarNumbers": "onSupplyCarNumbers",
+                    "SupplyIdCardNumbers": "onSupplyIdCardNumbers",
+
+                    "SupplyTextFromFile": "onSupplyTextFromFile",
+                    "SupplyImageFromFolder": "onSupplyImageFromFolder"
                 }
             }
         }
