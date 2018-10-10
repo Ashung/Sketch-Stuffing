@@ -221,7 +221,14 @@ var onSupplyTextFromFile = function(context) {
         return;
     }
     for (var i = 0; i < context.data.requestedCount; i++) {
-        DataSupplier.supplyDataAtIndex(context.data.key, data[i % data.length], i);
+        var dataIndex;
+        if (context.data.isSymbolInstanceOverride == 1) {
+            var selection = NSDocumentController.sharedDocumentController().currentDocument().selectedLayers().layers();
+            dataIndex = selection.indexOfObject(context.data.items.objectAtIndex(i).symbolInstance())
+        } else {
+            dataIndex = i;
+        }
+        DataSupplier.supplyDataAtIndex(context.data.key, data[dataIndex % data.length], i);
     }
 };
 
@@ -235,6 +242,13 @@ var onSupplyImageFromFolder = function(context) {
         return;
     }
     for (var i = 0; i < context.data.requestedCount; i++) {
-        DataSupplier.supplyDataAtIndex(context.data.key, images[i % images.length], i);
+        var dataIndex;
+        if (context.data.isSymbolInstanceOverride == 1) {
+            var selection = NSDocumentController.sharedDocumentController().currentDocument().selectedLayers().layers();
+            dataIndex = selection.indexOfObject(context.data.items.objectAtIndex(i).symbolInstance())
+        } else {
+            dataIndex = i;
+        }
+        DataSupplier.supplyDataAtIndex(context.data.key, images[dataIndex % images.length], i);
     }
 };
