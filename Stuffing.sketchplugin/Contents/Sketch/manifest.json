@@ -6,7 +6,7 @@
     "homepage" : "https://github.com/Ashung/Stuffing",
     "identifier" : "com.ashung.hung.stuffing",
     "suppliesData" : true,
-    "version" : "0.4",
+    "version" : "0.5",
     "icon": "icon.png",
     "appcast": "https://ashung.github.io/Sketch-Stuffing/appcast.xml",
     "commands": [
@@ -33,7 +33,9 @@
                     "SupplyIdCardNumbers": "onSupplyIdCardNumbers",
 
                     "SupplyTextFromFile": "onSupplyTextFromFile",
-                    "SupplyImageFromFolder": "onSupplyImageFromFolder"
+                    "SupplyImageFromFolder": "onSupplyImageFromFolder",
+                    "SupplyRandomTextFromFile": "onSupplyRandomTextFromFile",
+                    "SupplyRandomImageFromFolder": "onSupplyRandomImageFromFolder"
                 }
             }
         }

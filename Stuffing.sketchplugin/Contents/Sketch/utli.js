@@ -86,18 +86,18 @@ sys.chooseFolder = function() {
     }
 };
 
-sys.fileToArray = function(path) {
+sys.textsFromFile = function(path) {
     var contents = NSString.stringWithContentsOfFile_encoding_error(path, NSUTF8StringEncoding, nil);
     var data = contents.componentsSeparatedByCharactersInSet(NSCharacterSet.newlineCharacterSet());
-    var dataArray = [];
+    var texts = [];
     var loopData = data.objectEnumerator();
     var item;
     while (item = loopData.nextObject()) {
         if (item.length() > 0) {
-            dataArray.push(String(item));
+            texts.push(String(item));
         }
     }
-    return dataArray;
+    return texts;
 };
 
 sys.imagesFromFolder = function(path) {

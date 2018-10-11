@@ -25,7 +25,8 @@ var onStartup = function() {
 
     DataSupplier.registerDataSupplier("public.text", "定制 - 从文件载入", "SupplyTextFromFile");
     DataSupplier.registerDataSupplier("public.image", "定制 - 从文件夹载入", "SupplyImageFromFolder");
-
+    DataSupplier.registerDataSupplier("public.text", "定制 - 从文件随机载入", "SupplyRandomTextFromFile");
+    DataSupplier.registerDataSupplier("public.image", "定制 - 从文件夹随机载入", "SupplyRandomImageFromFolder");
 
 };
 
@@ -212,14 +213,52 @@ var onSupplyIdCardNumbers = function(context) {
 };
 
 var onSupplyTextFromFile = function(context) {
+    var texts = textsFromFile();
+    if (texts.length > 0) {
+        supplyOrderedData(context, texts);
+    }
+};
+
+var onSupplyImageFromFolder = function(context) {
+    var images = imagesFromFolder();
+    if (images.length > 0) {
+        supplyOrderedData(context, images);
+    }
+};
+
+var onSupplyRandomTextFromFile = function(context) {
+    var texts = textsFromFile();
+    if (texts.length > 0) {
+        supplyRandomData(context, texts);
+    }
+};
+
+var onSupplyRandomImageFromFolder = function(context) {
+    var images = imagesFromFolder();
+    if (images.length > 0) {
+        supplyRandomData(context, images);
+    }
+};
+
+function textsFromFile() {
     var textFile = sys.chooseFile();
     if (textFile == nil) {
-        return;
+        return [];
+    } else {
+        return sys.textsFromFile(textFile);
     }
-    var data = sys.fileToArray(textFile);
-    if (data.length == 0) {
-        return;
+}
+
+function imagesFromFolder() {
+    var imageFolder = sys.chooseFolder();
+    if (imageFolder == nil) {
+        return [];
+    } else {
+        return sys.imagesFromFolder(imageFolder);
     }
+}
+
+function supplyOrderedData(context, data) {
     for (var i = 0; i < context.data.requestedCount; i++) {
         var dataIndex;
         if (context.data.isSymbolInstanceOverride == 1) {
@@ -230,25 +269,10 @@ var onSupplyTextFromFile = function(context) {
         }
         DataSupplier.supplyDataAtIndex(context.data.key, data[dataIndex % data.length], i);
     }
-};
+}
 
-var onSupplyImageFromFolder = function(context) {
-    var imageFolder = sys.chooseFolder();
-    if (imageFolder == nil) {
-        return;
-    }
-    var images = sys.imagesFromFolder(imageFolder);
-    if (imageFolder.length == 0) {
-        return;
-    }
+function supplyRandomData(context, data) {
     for (var i = 0; i < context.data.requestedCount; i++) {
-        var dataIndex;
-        if (context.data.isSymbolInstanceOverride == 1) {
-            var selection = NSDocumentController.sharedDocumentController().currentDocument().selectedLayers().layers();
-            dataIndex = selection.indexOfObject(context.data.items.objectAtIndex(i).symbolInstance())
-        } else {
-            dataIndex = i;
-        }
-        DataSupplier.supplyDataAtIndex(context.data.key, images[dataIndex % images.length], i);
+        DataSupplier.supplyDataAtIndex(context.data.key, utli.randomOne(data), i);
     }
-};
+}
