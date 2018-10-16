@@ -5,11 +5,9 @@ var DataSupplier = require("sketch/data-supplier");
 
 var onStartup = function() {
 
-    DataSupplier.registerDataSupplier("public.text", "历法 - 月份", "SupplyMonths");
-    DataSupplier.registerDataSupplier("public.text", "历法 - 日", "SupplyDays");
-    DataSupplier.registerDataSupplier("public.text", "历法 - 星期", "SupplyWeekdays");
-    DataSupplier.registerDataSupplier("public.text", "历法 - 星期 (中)", "SupplyShortWeekdays");
-    DataSupplier.registerDataSupplier("public.text", "历法 - 星期 (短)", "SupplyNarrowWeekdays");
+    DataSupplier.registerDataSupplier("public.text", "日历 - 农历月", "SupplyMonths");
+    DataSupplier.registerDataSupplier("public.text", "日历 - 农历日", "SupplyDays");
+    DataSupplier.registerDataSupplier("public.text", "日历 - 星期", "SupplyWeekdays");
 
     DataSupplier.registerDataSupplier("public.text", "地理 - 中国省份", "SupplyProvinces");
     DataSupplier.registerDataSupplier("public.text", "地理 - 中国城市", "SupplyCities");
@@ -35,36 +33,59 @@ var onShutdown = function() {
 };
 
 var onSupplyMonths = function(context) {
-    var data = utli.orderedDataOffsetFromData_count(DATA_MONTHS, context.data.requestedCount);
-    DataSupplier.supplyData(context.data.key, data);
+    var dialog = ui.dialog("农历月");
+    var label = ui.label("起始");
+    dialog.addAccessoryView(label);
+    var stepper = ui.stepper(1, 12, 1);
+    dialog.addAccessoryView(stepper);
+    var responseCode = dialog.runModal();
+    if (responseCode == 1000) {
+        var start = stepper.subviews().lastObject().integerValue();
+        supplyOrderedData(context, DATA_MONTHS, start - 1);
+    }
 };
 
 var onSupplyWeekdays = function(context) {
-    var data = utli.orderedDataOffsetFromData_count(DATA_WEEKDAYS, context.data.requestedCount);
-    DataSupplier.supplyData(context.data.key, data);
-};
+    var dialog = ui.dialog("星期", "起始 0, 表示周日。");
+    var label1 = ui.label("格式");
+    dialog.addAccessoryView(label1);
+    var popupButton = ui.popupButton(["星期日", "周日", "日"]);
+    dialog.addAccessoryView(popupButton);
 
-var onSupplyShortWeekdays = function(context) {
-    var data = utli.orderedDataOffsetFromData_count(DATA_WEEKDAYS_SHORT, context.data.requestedCount);
-    DataSupplier.supplyData(context.data.key, data);
-};
+    var label2 = ui.label("起始");
+    dialog.addAccessoryView(label2);
+    var stepper = ui.stepper(0, 6, 0);
+    dialog.addAccessoryView(stepper);
 
-var onSupplyNarrowWeekdays = function(context) {
-    var data = utli.orderedDataOffsetFromData_count(DATA_WEEKDAYS_NARROW, context.data.requestedCount);
-    DataSupplier.supplyData(context.data.key, data);
+    var responseCode = dialog.runModal();
+    if (responseCode == 1000) {
+        var data = ["日","一","二","三","四","五","六"];
+        if (popupButton.indexOfSelectedItem() == 0) {
+            data = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+        }
+        if (popupButton.indexOfSelectedItem() == 1) {
+            data = ["周日","周一","周二","周三","周四","周五","周六"];
+        }
+        var start = stepper.subviews().lastObject().integerValue();
+        supplyOrderedData(context, data, start);
+    }
 };
 
 var onSupplyDays = function(context) {
-    var offset = utli.randomIntFromRange(0, DATA_DAYS.length - 1);
-    for (var i = 0; i < context.data.requestedCount; i++) {
-        DataSupplier.supplyDataAtIndex(context.data.key, DATA_DAYS[(i + offset) % DATA_DAYS.length], i);
+    var dialog = ui.dialog("农历日");
+    var label = ui.label("起始");
+    dialog.addAccessoryView(label);
+    var stepper = ui.stepper(1, 30, 1);
+    dialog.addAccessoryView(stepper);
+    var responseCode = dialog.runModal();
+    if (responseCode == 1000) {
+        var start = stepper.subviews().lastObject().integerValue();
+        supplyOrderedData(context, DATA_DAYS, start - 1);
     }
 };
 
 var onSupplyFullNames = function(context) {
-    var count = context.data.requestedCount;
-    var i = 0;
-    while (i < count) {
+    for (var i = 0; i < context.data.requestedCount; i++) {
         var familyName = DATA_LASTNAMES[Math.floor(Math.pow(Math.random(), 2.5) * DATA_LASTNAMES.length)];
         var name = "";
         var charsMale = utli.stringRemoveChars(DATA_CHARACTERS[0], familyName);
@@ -80,14 +101,11 @@ var onSupplyFullNames = function(context) {
             }
         }
         DataSupplier.supplyDataAtIndex(context.data.key, familyName + name, i);
-        i ++;
     }
 };
 
 var onSupplyMaleFullNames = function(context) {
-    var count = context.data.requestedCount;
-    var i = 0;
-    while (i < count) {
+    for (var i = 0; i < context.data.requestedCount; i++) {
         var familyName = DATA_LASTNAMES[Math.floor(Math.pow(Math.random(), 2.5) * DATA_LASTNAMES.length)];
         var name = "";
         var charsMale = utli.stringRemoveChars(DATA_CHARACTERS[0], familyName);
@@ -95,14 +113,11 @@ var onSupplyMaleFullNames = function(context) {
             name += charsMale[Math.floor(Math.random() * charsMale.length)];
         }
         DataSupplier.supplyDataAtIndex(context.data.key, familyName + name, i);
-        i ++;
     }
 };
 
 var onSupplyFemaleFullNames = function(context) {
-    var count = context.data.requestedCount;
-    var i = 0;
-    while (i < count) {
+    for (var i = 0; i < context.data.requestedCount; i++) {
         var familyName = DATA_LASTNAMES[Math.floor(Math.pow(Math.random(), 2.5) * DATA_LASTNAMES.length)];
         var name = "";
         var charsFemale = utli.stringRemoveChars(DATA_CHARACTERS[1], familyName);
@@ -115,7 +130,6 @@ var onSupplyFemaleFullNames = function(context) {
             name = charsFemale[Math.floor(Math.random() * charsFemale.length)].repeat(2);
         }
         DataSupplier.supplyDataAtIndex(context.data.key, familyName + name, i);
-        i ++;
     }
 };
 
@@ -169,22 +183,6 @@ var onSupplyPhoneNumbers = function(context) {
         text += utli.randomStringUseChars_length("0123456789", 4);
         DataSupplier.supplyDataAtIndex(context.data.key, text, i);
     }
-
-    // var items = context.data.items;
-    // items.forEach(function(item, i) {
-
-    //     var name, groupId;
-    //     if (context.data.isSymbolInstanceOverride == 0) {
-    //         name = item.name();
-    //         groupId = item.parentGroup().objectID();
-    //     } else {
-    //         name = item.affectedLayer().name();
-    //         groupId = item.symbolInstance().objectID();
-    //     }
-
-    //     var text = `${i} - ${name} - ${groupId}`;
-    //     DataSupplier.supplyDataAtIndex(context.data.key, text, i);
-    // });
 };
 
 var onSupplyCarNumbers = function(context) {
@@ -240,6 +238,14 @@ var onSupplyRandomImageFromFolder = function(context) {
     }
 };
 
+
+
+
+
+
+
+
+
 function textsFromFile() {
     var textFile = sys.chooseFile();
     if (textFile == nil) {
@@ -258,16 +264,19 @@ function imagesFromFolder() {
     }
 }
 
-function supplyOrderedData(context, data) {
+function supplyOrderedData(context, data, start) {
+    if (!start) {
+        start = 0;
+    }
     for (var i = 0; i < context.data.requestedCount; i++) {
         var dataIndex;
         if (context.data.isSymbolInstanceOverride == 1) {
             var selection = NSDocumentController.sharedDocumentController().currentDocument().selectedLayers().layers();
-            dataIndex = selection.indexOfObject(context.data.items.objectAtIndex(i).symbolInstance())
+            dataIndex = selection.indexOfObject(context.data.items.objectAtIndex(i).symbolInstance());
         } else {
             dataIndex = i;
         }
-        DataSupplier.supplyDataAtIndex(context.data.key, data[dataIndex % data.length], i);
+        DataSupplier.supplyDataAtIndex(context.data.key, data[(dataIndex + start) % data.length], i);
     }
 }
 

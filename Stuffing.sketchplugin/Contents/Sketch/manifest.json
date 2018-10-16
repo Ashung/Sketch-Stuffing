@@ -6,7 +6,7 @@
     "homepage" : "https://github.com/Ashung/Stuffing",
     "identifier" : "com.ashung.hung.stuffing",
     "suppliesData" : true,
-    "version" : "0.5",
+    "version" : "0.6",
     "icon": "icon.png",
     "appcast": "https://ashung.github.io/Sketch-Stuffing/appcast.xml",
     "commands": [
@@ -20,8 +20,6 @@
                     "SupplyMonths": "onSupplyMonths",
                     "SupplyWeekdays": "onSupplyWeekdays",
                     "SupplyDays": "onSupplyDays",
-                    "SupplyShortWeekdays": "onSupplyShortWeekdays",
-                    "SupplyNarrowWeekdays": "onSupplyNarrowWeekdays",
                     "SupplyFullNames": "onSupplyFullNames",
                     "SupplyMaleFullNames": "onSupplyMaleFullNames",
                     "SupplyFemaleFullNames": "onSupplyFemaleFullNames",
