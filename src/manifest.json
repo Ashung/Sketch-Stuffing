@@ -3,12 +3,14 @@
     "description" : "Sketch data supplier plugin.",
     "author" : "Ashung Hung",
     "authorEmail" : "ashung.hung@foxmail.com",
-    "homepage" : "https://github.com/Ashung/Stuffing",
+    "homepage" : "https://github.com/Ashung/Sketch-Stuffing",
     "identifier" : "com.ashung.hung.stuffing",
     "suppliesData" : true,
-    "version" : "0.6",
+    "version" : "1.0.0",
     "icon": "icon.png",
-    "appcast": "https://ashung.github.io/Sketch-Stuffing/appcast.xml",
+    "appcast": "https://raw.githubusercontent.com/Ashung/Sketch-Stuffing/develop/.appcast.xml",
+    "compatibleVersion": 3,
+    "bundleVersion": 1,
     "commands": [
         {
             "script": "main.js",
@@ -25,6 +27,7 @@
                     "SupplyFemaleFullNames": "onSupplyFemaleFullNames",
                     "SupplyProvinces": "onSupplyProvinces",
                     "SupplyCities": "onSupplyCities",
+                    "SupplyProvinceAndCities": "onSupplyProvinceAndCities",
                     "SupplyMobileNumbers": "onSupplyMobileNumbers",
                     "SupplyPhoneNumbers": "onSupplyPhoneNumbers",
                     "SupplyCarNumbers": "onSupplyCarNumbers",
@@ -32,8 +35,7 @@
 
                     "SupplyTextFromFile": "onSupplyTextFromFile",
                     "SupplyImageFromFolder": "onSupplyImageFromFolder",
-                    "SupplyRandomTextFromFile": "onSupplyRandomTextFromFile",
-                    "SupplyRandomImageFromFolder": "onSupplyRandomImageFromFolder"
+                    "SupplyRandomTextFromFile": "onSupplyRandomTextFromFile"
                 }
             }
         }

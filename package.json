@@ -1,0 +1,30 @@
+{
+  "name": "stuffing",
+  "version": "0.1.0",
+  "description": "A DataSupplier plugin which supplies chinese data.",
+  "engines": {
+    "sketch": ">=3.0"
+  },
+  "skpm": {
+    "name": "stuffing",
+    "manifest": "src/manifest.json",
+    "main": "release/stuffing.sketchplugin",
+    "assets": [
+      "assets/**/*"
+    ]
+  },
+  "scripts": {
+    "build": "skpm-build",
+    "watch": "skpm-build --watch",
+    "start": "skpm-build --watch --run",
+    "postinstall": "npm run build && skpm-link"
+  },
+  "devDependencies": {
+    "@skpm/builder": "^0.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ashung/Sketch-Stuffing.git"
+  },
+  "author": "Ashung <ashung.hung@gmail.com>"
+}
