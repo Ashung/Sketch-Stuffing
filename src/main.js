@@ -8,21 +8,30 @@ const du = require('./lib/data_util');
 const sys = require('./lib/system');
 
 // Data
-const DATA_LASTNAMES = require('./data/chinese_lastname.json');
+const DATA_SURNAMES = require('./data/surnames.json');
+const DATA_FIRST_NAMES_MALE = require('./data/first_name_male.json');
+const DATA_FIRST_NAMES_FEMALE = require('./data/first_name_female.json');
+const DATA_CHINESE_LASTNAMES = require('./data/chinese_lastname.json');
 const DATA_CHARACTERS_MALE = require('./data/chinese_characters_male.json');
 const DATA_CHARACTERS_FEMALE = require('./data/chinese_characters_female.json');
 const DATA_CHINA_LINCENSE_PLACE_NUMBER = require('./data/china_lincense_place_number.json');
 const DATA_CHINA_AREA = require('./data/china_area.json');
 const DATA_CITY_SUFFIXES = require('./data/china_city_suffixes.json');
 const DATA_CHINA_TELPHONE_CODE = require('./data/china_telephone_code.json');
+const DATA_EMAILS = require('./data/free_emails.json');
 
 export function onStartup () {
     DataSupplier.registerDataSupplier('public.text', '日历 - 农历月', 'SupplyMonths');
     DataSupplier.registerDataSupplier('public.text', '日历 - 农历日', 'SupplyDays');
     DataSupplier.registerDataSupplier('public.text', '日历 - 星期', 'SupplyWeekdays');
-    DataSupplier.registerDataSupplier('public.text', '姓名', 'SupplyFullNames');
-    DataSupplier.registerDataSupplier('public.text', '姓名 (男)', 'SupplyMaleFullNames');
-    DataSupplier.registerDataSupplier('public.text', '姓名 (女)', 'SupplyFemaleFullNames');
+    DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名', 'SupplyFullNames');
+    DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名男', 'SupplyMaleFullNames');
+    DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名女', 'SupplyFemaleFullNames');
+    DataSupplier.registerDataSupplier('public.text', '姓名 - 英文名', 'SupplyEnglishNames');
+    DataSupplier.registerDataSupplier('public.text', '姓名 - 英文全名', 'SupplyEnglishFullNames');
+    DataSupplier.registerDataSupplier('public.text', '姓名 - 英文名男', 'SupplyEnglishMaleNames');
+    DataSupplier.registerDataSupplier('public.text', '姓名 - 英文名女', 'SupplyEnglishFemaleNames');
+    DataSupplier.registerDataSupplier('public.text', '邮箱', 'SupplyEmails');
     DataSupplier.registerDataSupplier('public.text', '地理 - 中国省份', 'SupplyProvinces');
     DataSupplier.registerDataSupplier('public.text', '地理 - 中国城市', 'SupplyCities');
     DataSupplier.registerDataSupplier('public.text', '地理 - 中国省市', 'SupplyProvinceAndCities');
@@ -104,10 +113,10 @@ export function onSupplyDays (context) {
 
 export function onSupplyFullNames (context) {
     for (let i = 0; i < context.data.requestedCount; i++) {
-        let familyName = DATA_LASTNAMES[Math.floor(Math.pow(Math.random(), 2.5) * DATA_LASTNAMES.length)];
+        let familyName = du.randomOne(DATA_CHINESE_LASTNAMES, Math.pow(Math.random(), 2.5));
         let name = '';
-        let charsMale = du.stringRemoveChars(DATA_CHARACTERS_MALE, familyName);
-        let charsFemale = du.stringRemoveChars(DATA_CHARACTERS_FEMALE, familyName);
+        let charsMale = du.stringRemoveChars(DATA_CHARACTERS_MALE.join(""), familyName);
+        let charsFemale = du.stringRemoveChars(DATA_CHARACTERS_FEMALE.join(""), familyName);
         if (Math.random() < 0.5) {
             for (let j = 0; j < Math.floor(Math.random() * 2) + 1; j++) {
                 name += charsMale[Math.floor(Math.random() * charsMale.length)];
@@ -124,9 +133,9 @@ export function onSupplyFullNames (context) {
 
 export function onSupplyMaleFullNames (context) {
     for (let i = 0; i < context.data.requestedCount; i++) {
-        let familyName = DATA_LASTNAMES[Math.floor(Math.pow(Math.random(), 2.5) * DATA_LASTNAMES.length)];
+        let familyName = du.randomOne(DATA_CHINESE_LASTNAMES, Math.pow(Math.random(), 2.5));
         let name = '';
-        let charsMale = du.stringRemoveChars(DATA_CHARACTERS_MALE, familyName);
+        let charsMale = du.stringRemoveChars(DATA_CHARACTERS_MALE.join(""), familyName);
         for (let j = 0; j < Math.floor(Math.random() * 2) + 1; j++) {
             name += charsMale[Math.floor(Math.random() * charsMale.length)];
         }
@@ -136,9 +145,9 @@ export function onSupplyMaleFullNames (context) {
 
 export function onSupplyFemaleFullNames (context) {
     for (let i = 0; i < context.data.requestedCount; i++) {
-        let familyName = DATA_LASTNAMES[Math.floor(Math.pow(Math.random(), 2.5) * DATA_LASTNAMES.length)];
+        let familyName = du.randomOne(DATA_CHINESE_LASTNAMES, Math.pow(Math.random(), 2.5));
         let name = '';
-        let charsFemale = du.stringRemoveChars(DATA_CHARACTERS_FEMALE, familyName);
+        let charsFemale = du.stringRemoveChars(DATA_CHARACTERS_FEMALE.join(""), familyName);
         if (Math.random() < 0.9) {
             for (let j = 0; j < Math.floor(Math.random() * 2) + 1; j++) {
                 name += charsFemale[Math.floor(Math.random() * charsFemale.length)];
@@ -148,6 +157,67 @@ export function onSupplyFemaleFullNames (context) {
             name = charsFemale[Math.floor(Math.random() * charsFemale.length)].repeat(2);
         }
         DataSupplier.supplyDataAtIndex(context.data.key, familyName + name, i);
+    }
+};
+
+export function onSupplyEnglishFullNames (context) {
+    for (let i = 0; i < context.data.requestedCount; i++) {
+        let fullName = '';
+        let surname = du.randomOne(DATA_SURNAMES, Math.pow(Math.random(), 2.5));
+        if (Math.random() < 0.5) {
+            fullName = du.randomOne(DATA_FIRST_NAMES_MALE) + ' ' + surname;
+        }
+        else {
+            fullName = du.randomOne(DATA_FIRST_NAMES_FEMALE) + ' ' + surname;
+        }
+        DataSupplier.supplyDataAtIndex(context.data.key, fullName, i);
+    }
+};
+
+export function onSupplyEnglishNames (context) {
+    for (let i = 0; i < context.data.requestedCount; i++) {
+        let name = '';
+        if (Math.random() < 0.5) {
+            name = du.randomOne(DATA_FIRST_NAMES_MALE);
+        }
+        else {
+            name = du.randomOne(DATA_FIRST_NAMES_FEMALE);
+        }
+        DataSupplier.supplyDataAtIndex(context.data.key, name, i);
+    }
+};
+
+export function onSupplyEnglishMaleNames (context) {
+    for (let i = 0; i < context.data.requestedCount; i++) {
+        let name = du.randomOne(DATA_FIRST_NAMES_MALE);
+        DataSupplier.supplyDataAtIndex(context.data.key, name, i);
+    }
+};
+
+export function onSupplyEnglishFemaleNames (context) {
+    for (let i = 0; i < context.data.requestedCount; i++) {
+        let name = du.randomOne(DATA_FIRST_NAMES_FEMALE);
+        DataSupplier.supplyDataAtIndex(context.data.key, name, i);
+    }
+};
+
+export function onSupplyEmails (context) {
+    for (let i = 0; i < context.data.requestedCount; i++) {
+        let name = '';
+        let email = du.randomOne(DATA_EMAILS, Math.pow(Math.random(), 2.5));
+        let surname = du.randomOne(DATA_SURNAMES);
+        if (Math.random() < 0.5) {
+            name = du.randomOne(DATA_FIRST_NAMES_MALE);
+        }
+        else {
+            name = du.randomOne(DATA_FIRST_NAMES_FEMALE);
+        }
+        if (Math.random() < 0.5) {
+            name += '_' + surname;
+        }
+        name += '@' + email;
+        name = name.replace('\'', "").toLowerCase();
+        DataSupplier.supplyDataAtIndex(context.data.key, name, i);
     }
 };
 
