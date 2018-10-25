@@ -1,29 +1,28 @@
-const sketch = require('sketch');
-const { DataSupplier } = sketch;
-const util = require('util');
+const DataSupplier = require("sketch/data-supplier");
 
 // Custom modules
 const ui = require('./lib/ui');
 const du = require('./lib/data_util');
 const sys = require('./lib/system');
+const preferences = require('./lib/preferences');
 
 // Data
 const DATA_SURNAMES = require('./data/surnames.json');
 const DATA_FIRST_NAMES_MALE = require('./data/first_name_male.json');
 const DATA_FIRST_NAMES_FEMALE = require('./data/first_name_female.json');
-const DATA_CHINESE_LASTNAMES = require('./data/chinese_lastname.json');
+const DATA_CHINESE_SURNAMES = require('./data/chinese_surnames.json');
 const DATA_CHARACTERS_MALE = require('./data/chinese_characters_male.json');
 const DATA_CHARACTERS_FEMALE = require('./data/chinese_characters_female.json');
-const DATA_CHINA_LINCENSE_PLACE_NUMBER = require('./data/china_lincense_place_number.json');
+const DATA_CHINA_LICENSE_PLACE_NUMBER = require('./data/china_license_place_number.json');
 const DATA_CHINA_AREA = require('./data/china_area.json');
 const DATA_CITY_SUFFIXES = require('./data/china_city_suffixes.json');
-const DATA_CHINA_TELPHONE_CODE = require('./data/china_telephone_code.json');
+const DATA_CHINA_TELEPHONE_CODE = require('./data/china_telephone_code.json');
 const DATA_EMAILS = require('./data/free_emails.json');
 
 export function onStartup () {
-    DataSupplier.registerDataSupplier('public.text', '日历 - 农历月', 'SupplyMonths');
-    DataSupplier.registerDataSupplier('public.text', '日历 - 农历日', 'SupplyDays');
-    DataSupplier.registerDataSupplier('public.text', '日历 - 星期', 'SupplyWeekdays');
+    DataSupplier.registerDataSupplier('public.text', '时间 - 农历月', 'SupplyMonths');
+    DataSupplier.registerDataSupplier('public.text', '时间 - 农历日', 'SupplyDays');
+    DataSupplier.registerDataSupplier('public.text', '时间 - 星期', 'SupplyWeekdays');
     DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名', 'SupplyFullNames');
     DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名男', 'SupplyMaleFullNames');
     DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名女', 'SupplyFemaleFullNames');
@@ -39,6 +38,8 @@ export function onStartup () {
     DataSupplier.registerDataSupplier('public.text', '号码 - 固定电话', 'SupplyPhoneNumbers');
     DataSupplier.registerDataSupplier('public.text', '号码 - 车牌号', 'SupplyCarNumbers');
     DataSupplier.registerDataSupplier('public.text', '号码 - 身份证号', 'SupplyIdCardNumbers');
+    DataSupplier.registerDataSupplier('public.text', '号码 - 自定义编号', 'SupplyCustomNumbers');
+    DataSupplier.registerDataSupplier('public.text', '号码 - 连续数值', 'SupplyNumericalSeries');
     DataSupplier.registerDataSupplier('public.text', '定制 - 从文件载入', 'SupplyTextFromFile');
     DataSupplier.registerDataSupplier('public.image', '定制 - 从文件夹载入', 'SupplyImageFromFolder');
     DataSupplier.registerDataSupplier('public.text', '定制 - 从文件随机载入', 'SupplyRandomTextFromFile');
@@ -113,7 +114,7 @@ export function onSupplyDays (context) {
 
 export function onSupplyFullNames (context) {
     for (let i = 0; i < context.data.requestedCount; i++) {
-        let familyName = du.randomOne(DATA_CHINESE_LASTNAMES, Math.pow(Math.random(), 2.5));
+        let familyName = du.randomOne(DATA_CHINESE_SURNAMES, Math.pow(Math.random(), 2.5));
         let name = '';
         let charsMale = du.stringRemoveChars(DATA_CHARACTERS_MALE.join(""), familyName);
         let charsFemale = du.stringRemoveChars(DATA_CHARACTERS_FEMALE.join(""), familyName);
@@ -133,7 +134,7 @@ export function onSupplyFullNames (context) {
 
 export function onSupplyMaleFullNames (context) {
     for (let i = 0; i < context.data.requestedCount; i++) {
-        let familyName = du.randomOne(DATA_CHINESE_LASTNAMES, Math.pow(Math.random(), 2.5));
+        let familyName = du.randomOne(DATA_CHINESE_SURNAMES, Math.pow(Math.random(), 2.5));
         let name = '';
         let charsMale = du.stringRemoveChars(DATA_CHARACTERS_MALE.join(""), familyName);
         for (let j = 0; j < Math.floor(Math.random() * 2) + 1; j++) {
@@ -145,7 +146,7 @@ export function onSupplyMaleFullNames (context) {
 
 export function onSupplyFemaleFullNames (context) {
     for (let i = 0; i < context.data.requestedCount; i++) {
-        let familyName = du.randomOne(DATA_CHINESE_LASTNAMES, Math.pow(Math.random(), 2.5));
+        let familyName = du.randomOne(DATA_CHINESE_SURNAMES, Math.pow(Math.random(), 2.5));
         let name = '';
         let charsFemale = du.stringRemoveChars(DATA_CHARACTERS_FEMALE.join(""), familyName);
         if (Math.random() < 0.9) {
@@ -224,7 +225,7 @@ export function onSupplyEmails (context) {
 // Location
 
 export function onSupplyProvinces (context) {
-    let provinces = DATA_CHINA_LINCENSE_PLACE_NUMBER.map(function(item) {
+    let provinces = DATA_CHINA_LICENSE_PLACE_NUMBER.map(function(item) {
         return item.full;
     });
     for (let i = 0; i < context.data.requestedCount; i++) {
@@ -248,7 +249,7 @@ export function onSupplyCities (context) {
 };
 
 export function onSupplyProvinceAndCities (context) {
-    let provinceAndCities = Object.values(DATA_CHINA_TELPHONE_CODE);
+    let provinceAndCities = Object.values(DATA_CHINA_TELEPHONE_CODE);
     for (let i = 0; i < context.data.requestedCount; i++) {
         DataSupplier.supplyDataAtIndex(context.data.key, du.randomOne(provinceAndCities), i);
     }
@@ -274,7 +275,7 @@ export function onSupplyMobileNumbers (context) {
 export function onSupplyPhoneNumbers (context) {
     for (let i = 0; i < context.data.requestedCount; i++) {
         let text = '(';
-        text += du.randomOne(Object.keys(DATA_CHINA_TELPHONE_CODE));
+        text += du.randomOne(Object.keys(DATA_CHINA_TELEPHONE_CODE));
         text += ') ';
         text += du.randomStringUseChars_length('123456789', 1);
         text += du.randomStringUseChars_length('0123456789', du.randomIntFromRange(2, 3));
@@ -286,7 +287,7 @@ export function onSupplyPhoneNumbers (context) {
 
 export function onSupplyCarNumbers (context) {
     for (let i = 0; i < context.data.requestedCount; i++) {
-        let province = du.randomOne(DATA_CHINA_LINCENSE_PLACE_NUMBER);
+        let province = du.randomOne(DATA_CHINA_LICENSE_PLACE_NUMBER);
         let text = province['abbr'] + du.randomOne(province['license_place_number']) + ' ';
         text += du.randomStringUseChars_length('ABCDEFGHJKLMNPQRSTUVWXYZ0123456789', du.randomIntFromRange(5, 6));
         DataSupplier.supplyDataAtIndex(context.data.key, text, i);
@@ -306,6 +307,42 @@ export function onSupplyIdCardNumbers (context) {
         let suffix = du.randomStringUseChars_length('0123456789', 4);
         let text = cityCode + ' ' + year + month + day + ' ' + suffix;
         DataSupplier.supplyDataAtIndex(context.data.key, text, i);
+    }
+};
+
+export function onSupplyCustomNumbers (context) {
+    let dialog = ui.dialog('自定义编号', '起始 0, 表示周日。');
+
+    let label0 = ui.label('常见格式编号');
+    dialog.addAccessoryView(label0);
+    let commonFormats = ui.popupButton([
+        "MD5",
+        "SHA1",
+        "GUID",
+        "UUID",
+        "ISBN",
+        "BASE-64"
+    ]);
+    dialog.addAccessoryView(commonFormats);
+
+    let label1 = ui.label('替换字符');
+    dialog.addAccessoryView(label1);
+    let inputUseChars = ui.input("xxxxx");
+    dialog.addAccessoryView(inputUseChars);
+
+    let label2 = ui.label('模版字符');
+    dialog.addAccessoryView(label2);
+    let inputTemplateChar = ui.input("xxxxx");
+    dialog.addAccessoryView(inputTemplateChar);
+    
+    let label3 = ui.label('格式');
+    dialog.addAccessoryView(label3);
+    let inputTemplate = ui.input("xxxxx");
+    dialog.addAccessoryView(inputTemplate);
+
+    let responseCode = dialog.runModal();
+    if (responseCode == 1000) {
+
     }
 };
 

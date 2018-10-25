@@ -37,7 +37,8 @@
                     "SupplyPhoneNumbers": "onSupplyPhoneNumbers",
                     "SupplyCarNumbers": "onSupplyCarNumbers",
                     "SupplyIdCardNumbers": "onSupplyIdCardNumbers",
-
+                    "SupplyCustomNumbers": "onSupplyCustomNumbers",
+                    
                     "SupplyTextFromFile": "onSupplyTextFromFile",
                     "SupplyImageFromFolder": "onSupplyImageFromFolder",
                     "SupplyRandomTextFromFile": "onSupplyRandomTextFromFile"
