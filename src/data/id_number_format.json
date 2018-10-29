@@ -1,0 +1,38 @@
+[
+    {
+        "title": "验证码 (4 位数字)",
+        "chars": "1234567890",
+        "template": "x",
+        "format": "xxxx"
+    },
+    {
+        "title": "验证码 (4 位字母数字)",
+        "chars": "1234567890abcdefghijklmnopqrstuvwxyz",
+        "template": "x",
+        "format": "xxxx"
+    },
+    {
+        "title": "快递单号 (13 位数字)",
+        "chars": "1234567890",
+        "template": "x",
+        "format": "xxxxxxxxxxxx"
+    },
+    {
+        "title": "MD5",
+        "chars": "1234567890abcdef",
+        "template": "x",
+        "format": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+        "title": "SHA-1",
+        "chars": "1234567890abcdef",
+        "template": "x",
+        "format": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+        "title": "UUID",
+        "chars": "1234567890abcdef",
+        "template": "x",
+        "format": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    }
+]

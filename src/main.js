@@ -18,6 +18,7 @@ const DATA_CHINA_AREA = require('./data/china_area.json');
 const DATA_CITY_SUFFIXES = require('./data/china_city_suffixes.json');
 const DATA_CHINA_TELEPHONE_CODE = require('./data/china_telephone_code.json');
 const DATA_EMAILS = require('./data/free_emails.json');
+const DATA_ID_NUMBER_FORMATS = require('./data/id_number_format.json');
 
 export function onStartup () {
     DataSupplier.registerDataSupplier('public.text', '时间 - 农历月', 'SupplyMonths');
@@ -60,7 +61,7 @@ export function onSupplyMonths (context) {
     let stepper = ui.stepper(1, 12, 1);
     dialog.addAccessoryView(stepper);
     let responseCode = dialog.runModal();
-    if (responseCode == 1000) {
+    if (responseCode === 1000) {
         let start = stepper.subviews().lastObject().integerValue();
         supplyOrderedData(context, DATA_MONTHS, start - 1);
     }
@@ -79,12 +80,12 @@ export function onSupplyWeekdays (context) {
     dialog.addAccessoryView(stepper);
 
     let responseCode = dialog.runModal();
-    if (responseCode == 1000) {
+    if (responseCode === 1000) {
         let data = ['日','一','二','三','四','五','六'];
-        if (popupButton.indexOfSelectedItem() == 0) {
+        if (popupButton.indexOfSelectedItem() === 0) {
             data = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
         }
-        if (popupButton.indexOfSelectedItem() == 1) {
+        if (popupButton.indexOfSelectedItem() === 1) {
             data = ['周日','周一','周二','周三','周四','周五','周六'];
         }
         let start = stepper.subviews().lastObject().integerValue();
@@ -104,7 +105,7 @@ export function onSupplyDays (context) {
     let stepper = ui.stepper(1, 30, 1);
     dialog.addAccessoryView(stepper);
     let responseCode = dialog.runModal();
-    if (responseCode == 1000) {
+    if (responseCode === 1000) {
         let start = stepper.subviews().lastObject().integerValue();
         supplyOrderedData(context, DATA_DAYS, start - 1);
     }
@@ -238,7 +239,7 @@ export function onSupplyCities (context) {
     for (let i = 0; i < context.data.requestedCount; i++) {
         let provinceCode = du.randomOne(provinceCodes);
         let city = du.randomOne(Object.values(DATA_CHINA_AREA[provinceCode]));
-        if (city == '市辖区' || city == '县') {
+        if (city === '市辖区' || city === '县') {
             city = DATA_CHINA_AREA['86'][provinceCode];
         }
         DATA_CITY_SUFFIXES.forEach(function(suffix) {
@@ -311,38 +312,91 @@ export function onSupplyIdCardNumbers (context) {
 };
 
 export function onSupplyCustomNumbers (context) {
-    let dialog = ui.dialog('自定义编号', '起始 0, 表示周日。');
+    let dialog = ui.dialog('自定义编号', '使用 "可用字符" 中的字符随机替换 "格式" 中的 "替换字符"。');
 
-    let label0 = ui.label('常见格式编号');
+    let label0 = ui.label('常见格式');
     dialog.addAccessoryView(label0);
-    let commonFormats = ui.popupButton([
-        "MD5",
-        "SHA1",
-        "GUID",
-        "UUID",
-        "ISBN",
-        "BASE-64"
-    ]);
+    let formatTitles = DATA_ID_NUMBER_FORMATS.map(item => {
+        return item.title;
+    });
+    formatTitles = ["自定义"].concat(formatTitles)
+    let commonFormats = ui.popupButton(formatTitles);
+    let defaultFormatIndex = preferences.get("custom_number_preset_index") || 0;
+    commonFormats.selectItemAtIndex(defaultFormatIndex);
     dialog.addAccessoryView(commonFormats);
 
-    let label1 = ui.label('替换字符');
+    let customNumberChars = preferences.get("custom_number_chars") || DATA_ID_NUMBER_FORMATS[0]['chars'];
+    let customNumberTemplate = preferences.get("custom_number_template") || DATA_ID_NUMBER_FORMATS[0]['template'];
+    let customNumberFormat = preferences.get("custom_number_format") || DATA_ID_NUMBER_FORMATS[0]['format'];
+    let defaultUseChars, defaultTemplate, defaultFormat;
+    if (commonFormats.indexOfSelectedItem() === 0) {
+        defaultUseChars = customNumberChars;
+        defaultTemplate = customNumberTemplate;
+        defaultFormat = customNumberFormat;
+    } else {
+        defaultUseChars = DATA_ID_NUMBER_FORMATS[commonFormats.indexOfSelectedItem() - 1]['chars'];
+        defaultTemplate = DATA_ID_NUMBER_FORMATS[commonFormats.indexOfSelectedItem() - 1]['template'];
+        defaultFormat = DATA_ID_NUMBER_FORMATS[commonFormats.indexOfSelectedItem() - 1]['format'];
+    }
+
+    commonFormats.setCOSJSTargetFunction(sender => {
+        if (sender.indexOfSelectedItem() === 0) {
+            inputUseChars.setStringValue(customNumberChars);
+            inputTemplate.setStringValue(customNumberTemplate);
+            inputFormat.setStringValue(customNumberFormat);
+        } else {
+            let index = sender.indexOfSelectedItem() - 1;
+            inputUseChars.setStringValue(DATA_ID_NUMBER_FORMATS[index]['chars']);
+            inputTemplate.setStringValue(DATA_ID_NUMBER_FORMATS[index]['template']);
+            inputFormat.setStringValue(DATA_ID_NUMBER_FORMATS[index]['format']);
+        }
+    });
+
+    let label1 = ui.label('可用字符');
     dialog.addAccessoryView(label1);
-    let inputUseChars = ui.input("xxxxx");
+    let inputUseChars = ui.input(defaultUseChars);
     dialog.addAccessoryView(inputUseChars);
 
-    let label2 = ui.label('模版字符');
+    let label2 = ui.label('替换字符');
     dialog.addAccessoryView(label2);
-    let inputTemplateChar = ui.input("xxxxx");
-    dialog.addAccessoryView(inputTemplateChar);
+    let inputTemplate = ui.input(defaultTemplate);
+    dialog.addAccessoryView(inputTemplate);
     
     let label3 = ui.label('格式');
     dialog.addAccessoryView(label3);
-    let inputTemplate = ui.input("xxxxx");
-    dialog.addAccessoryView(inputTemplate);
+    let inputFormat= ui.input(defaultFormat);
+    dialog.addAccessoryView(inputFormat);
 
     let responseCode = dialog.runModal();
-    if (responseCode == 1000) {
+    if (responseCode === 1000) {
+        let doSetDefaultCustomNumber = false;
+        preferences.set("custom_number_preset_index", commonFormats.indexOfSelectedItem());
+        if (commonFormats.indexOfSelectedItem() === 0) {
+            doSetDefaultCustomNumber = true;
+        } else {
+            let dataIndex = commonFormats.indexOfSelectedItem() - 1;
+            if (
+                String(inputUseChars.stringValue()) !== DATA_ID_NUMBER_FORMATS[dataIndex]['chars'] ||
+                String(inputTemplate.stringValue()) !== DATA_ID_NUMBER_FORMATS[dataIndex]['template'] ||
+                String(inputFormat.stringValue()) !== DATA_ID_NUMBER_FORMATS[dataIndex]['format']
+            ) {
+                preferences.set("custom_number_preset_index", 0);
+                doSetDefaultCustomNumber = true;
+            }
+        }
+        if (doSetDefaultCustomNumber) {
+            preferences.set("custom_number_chars", inputUseChars.stringValue());
+            preferences.set("custom_number_template", inputTemplate.stringValue());
+            preferences.set("custom_number_format", inputFormat.stringValue());
+        }
 
+        for (let i = 0; i < context.data.requestedCount; i++) {
+            let inputTemplateRegExp = new RegExp(inputTemplate.stringValue(), 'g');
+            let text = inputFormat.stringValue().replace(inputTemplateRegExp, () => {
+                return du.randomStringUseChars_length(String(inputUseChars.stringValue()), 1);
+            });
+            DataSupplier.supplyDataAtIndex(context.data.key, text, i);
+        }
     }
 };
 
@@ -382,7 +436,7 @@ function supplyOrderedData(context, data, start) {
     if (!start) start = 0;
     for (let i = 0; i < context.data.requestedCount; i++) {
         let dataIndex;
-        if (context.data.isSymbolInstanceOverride == 1) {
+        if (context.data.isSymbolInstanceOverride === 1) {
             let selection = NSDocumentController.sharedDocumentController().currentDocument().selectedLayers().layers();
             dataIndex = selection.indexOfObject(context.data.items.objectAtIndex(i).symbolInstance());
         } else {

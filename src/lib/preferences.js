@@ -1,7 +1,8 @@
+const identifier = require('../manifest.json').identifier;
+
 const preferences = {};
 
-preferences.get = function(context, key) {
-    var identifier = context.plugin.identifier();
+preferences.get = function(key) {
     var userDefaults = NSUserDefaults.standardUserDefaults();
     if (!userDefaults.dictionaryForKey(identifier)) {
         var defaultPreferences = NSMutableDictionary.alloc().init();
@@ -11,8 +12,7 @@ preferences.get = function(context, key) {
     return userDefaults.dictionaryForKey(identifier).objectForKey(key);
 };
 
-preferences.set = function(context, key, value) {
-    var identifier = context.plugin.identifier();
+preferences.set = function(key, value) {
     var userDefaults = NSUserDefaults.standardUserDefaults();
     if (!userDefaults.dictionaryForKey(identifier)) {
         var preferences = NSMutableDictionary.alloc().init();
