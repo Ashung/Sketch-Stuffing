@@ -40,20 +40,21 @@ ui.input = function(text) {
     return view;
 };
 
+ui.numberInput = function(text) {
+    let view = NSTextField.alloc().initWithFrame(NSMakeRect(0, 0, 60, 24));
+    let formatter = NSNumberFormatter.alloc().init().autorelease();
+    formatter.setNumberStyle(NSNumberFormatterNoStyle);
+    view.setFormatter(formatter);
+    view.setStringValue(String(text));
+    return view;
+};
+
 ui.popupButton = function(items) {
     let view = NSPopUpButton.alloc().initWithFrame(NSMakeRect(0, 0, 300, 24));
     items.forEach(item => {
         view.addItemWithTitle('');
         view.lastItem().setTitle(item);
     });
-    return view;
-};
-
-ui.numberInput = function() {
-    let view = NSTextField.alloc().initWithFrame(NSMakeRect(0, 0, 60, 24));
-    let formatter = NSNumberFormatter.alloc().init().autorelease();
-    view.setStringValue(String(initBaselineOffset));
-    view.setFormatter(formatter);
     return view;
 };
 

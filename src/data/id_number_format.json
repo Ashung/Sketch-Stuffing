@@ -18,6 +18,12 @@
         "format": "xxxxxxxxxxxx"
     },
     {
+        "title": "MAC 地址",
+        "chars": "1234567890ABCDEF",
+        "template": "x",
+        "format": "xx-xx-xx-xx-xx-xx"
+    },
+    {
         "title": "MD5",
         "chars": "1234567890abcdef",
         "template": "x",

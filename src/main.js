@@ -40,6 +40,7 @@ export function onStartup () {
     DataSupplier.registerDataSupplier('public.text', '号码 - 车牌号', 'SupplyCarNumbers');
     DataSupplier.registerDataSupplier('public.text', '号码 - 身份证号', 'SupplyIdCardNumbers');
     DataSupplier.registerDataSupplier('public.text', '号码 - 自定义编号', 'SupplyCustomNumbers');
+    DataSupplier.registerDataSupplier('public.text', '号码 - 自定义数值', 'SupplySequenceNumbers');
     DataSupplier.registerDataSupplier('public.text', '号码 - 连续数值', 'SupplyNumericalSeries');
     DataSupplier.registerDataSupplier('public.text', '定制 - 从文件载入', 'SupplyTextFromFile');
     DataSupplier.registerDataSupplier('public.image', '定制 - 从文件夹载入', 'SupplyImageFromFolder');
@@ -319,15 +320,15 @@ export function onSupplyCustomNumbers (context) {
     let formatTitles = DATA_ID_NUMBER_FORMATS.map(item => {
         return item.title;
     });
-    formatTitles = ["自定义"].concat(formatTitles)
+    formatTitles = ['自定义'].concat(formatTitles);
     let commonFormats = ui.popupButton(formatTitles);
-    let defaultFormatIndex = preferences.get("custom_number_preset_index") || 0;
+    let defaultFormatIndex = preferences.get('custom_number_preset_index') || 0;
     commonFormats.selectItemAtIndex(defaultFormatIndex);
     dialog.addAccessoryView(commonFormats);
 
-    let customNumberChars = preferences.get("custom_number_chars") || DATA_ID_NUMBER_FORMATS[0]['chars'];
-    let customNumberTemplate = preferences.get("custom_number_template") || DATA_ID_NUMBER_FORMATS[0]['template'];
-    let customNumberFormat = preferences.get("custom_number_format") || DATA_ID_NUMBER_FORMATS[0]['format'];
+    let customNumberChars = preferences.get('custom_number_chars') || DATA_ID_NUMBER_FORMATS[0]['chars'];
+    let customNumberTemplate = preferences.get('custom_number_template') || DATA_ID_NUMBER_FORMATS[0]['template'];
+    let customNumberFormat = preferences.get('custom_number_format') || DATA_ID_NUMBER_FORMATS[0]['format'];
     let defaultUseChars, defaultTemplate, defaultFormat;
     if (commonFormats.indexOfSelectedItem() === 0) {
         defaultUseChars = customNumberChars;
@@ -357,20 +358,20 @@ export function onSupplyCustomNumbers (context) {
     let inputUseChars = ui.input(defaultUseChars);
     dialog.addAccessoryView(inputUseChars);
 
-    let label2 = ui.label('替换字符');
+    let label2 = ui.label('格式');
     dialog.addAccessoryView(label2);
-    let inputTemplate = ui.input(defaultTemplate);
-    dialog.addAccessoryView(inputTemplate);
-    
-    let label3 = ui.label('格式');
-    dialog.addAccessoryView(label3);
     let inputFormat= ui.input(defaultFormat);
     dialog.addAccessoryView(inputFormat);
+
+    let label3 = ui.label('替换字符');
+    dialog.addAccessoryView(label3);
+    let inputTemplate = ui.input(defaultTemplate);
+    dialog.addAccessoryView(inputTemplate);
 
     let responseCode = dialog.runModal();
     if (responseCode === 1000) {
         let doSetDefaultCustomNumber = false;
-        preferences.set("custom_number_preset_index", commonFormats.indexOfSelectedItem());
+        preferences.set('custom_number_preset_index', commonFormats.indexOfSelectedItem());
         if (commonFormats.indexOfSelectedItem() === 0) {
             doSetDefaultCustomNumber = true;
         } else {
@@ -380,14 +381,14 @@ export function onSupplyCustomNumbers (context) {
                 String(inputTemplate.stringValue()) !== DATA_ID_NUMBER_FORMATS[dataIndex]['template'] ||
                 String(inputFormat.stringValue()) !== DATA_ID_NUMBER_FORMATS[dataIndex]['format']
             ) {
-                preferences.set("custom_number_preset_index", 0);
+                preferences.set('custom_number_preset_index', 0);
                 doSetDefaultCustomNumber = true;
             }
         }
         if (doSetDefaultCustomNumber) {
-            preferences.set("custom_number_chars", inputUseChars.stringValue());
-            preferences.set("custom_number_template", inputTemplate.stringValue());
-            preferences.set("custom_number_format", inputFormat.stringValue());
+            preferences.set('custom_number_chars', inputUseChars.stringValue());
+            preferences.set('custom_number_template', inputTemplate.stringValue());
+            preferences.set('custom_number_format', inputFormat.stringValue());
         }
 
         for (let i = 0; i < context.data.requestedCount; i++) {
@@ -397,6 +398,93 @@ export function onSupplyCustomNumbers (context) {
             });
             DataSupplier.supplyDataAtIndex(context.data.key, text, i);
         }
+    }
+};
+
+export function onSupplySequenceNumbers (context) {
+    let dialog = ui.dialog('自定义序列数值');
+
+    let defaultStart = preferences.get('sequence_number_start') || 1;
+    let defaultType = preferences.get('sequence_number_type') || 0;
+    let defaultIncrease = preferences.get('sequence_number_increase') || 1;
+    let defaultLength = preferences.get('sequence_number_length') || 1;
+    let defaultPrefix = preferences.get('sequence_number_prefix') || '';
+    let defaultSuffix = preferences.get('sequence_number_suffix') || '';
+
+    let label0 = ui.label('起始数字 (只允许整数)');
+    dialog.addAccessoryView(label0);
+    let inputStart = ui.numberInput(defaultStart);
+    dialog.addAccessoryView(inputStart);
+
+    let label1 = ui.label('数值增减方式');
+    dialog.addAccessoryView(label1);
+    let inputType = ui.popupButton([
+        '固定增减',
+        '随机增减 (增加 1 至 “递增值” 之间数值)',
+        '随机自然增减 (增减 1 至 “递增值” 之间数值)',
+        '随机起伏 (所有数值在 “起始” ± “递增值” 之间)'
+    ]);
+    inputType.selectItemAtIndex(defaultType);
+    dialog.addAccessoryView(inputType);
+
+    let label2 = ui.label('递增值 (只允许整数，例如 1 或 -1)');
+    dialog.addAccessoryView(label2);
+    let inputIncrease = ui.numberInput(defaultIncrease);
+    dialog.addAccessoryView(inputIncrease);
+
+    let label22 = ui.label('数值长度 (不足长度将在数值前补 0)');
+    dialog.addAccessoryView(label22);
+    let inputLength = ui.stepper(1, 100, parseInt(defaultLength));
+    dialog.addAccessoryView(inputLength);
+
+    let label3 = ui.label('前缀');
+    dialog.addAccessoryView(label3);
+    let inputPrefix = ui.input(defaultPrefix);
+    dialog.addAccessoryView(inputPrefix);
+
+    let label4 = ui.label('后缀');
+    dialog.addAccessoryView(label4);
+    let inputSuffix = ui.input(defaultSuffix);
+    dialog.addAccessoryView(inputSuffix);
+
+    let responseCode = dialog.runModal();
+    if (responseCode === 1000) {
+        let data = [];
+        let start = parseInt(inputStart.stringValue());
+        let increase = parseInt(inputIncrease.stringValue());
+        let length = inputLength.subviews().lastObject().integerValue();
+        let increaseType = inputType.indexOfSelectedItem();
+        let prefix = inputPrefix.stringValue();
+        let suffix = inputSuffix.stringValue();
+        for (let i = 0; i < context.data.requestedCount; i++) {
+            if (increaseType === 0) {
+                data.push(start);
+                start = start + increase;
+            }
+            else if (increaseType === 1) {
+                data.push(start);
+                start = start + du.randomIntFromRange(1, increase);
+            }
+            else if (increaseType === 2) {
+                data.push(start);
+                start = start + du.randomIntFromRange(1, increase) * du.randomOne([1, -1], Math.pow(Math.random(), 2.5));
+            }
+            else if (increaseType === 3) {
+                data.push(du.randomIntFromRange(start - increase, start + increase));
+            }
+        }
+        data = data.map(item => {
+            item = du.supplyCharToFitLength(String(item), '0', length);
+            return prefix + item + suffix;
+        });
+        supplyOrderedData(context, data);
+
+        preferences.set('sequence_number_start', parseInt(inputStart.stringValue()));
+        preferences.set('sequence_number_type', increaseType);
+        preferences.set('sequence_number_increase', increase);
+        preferences.set('sequence_number_length', length);
+        preferences.set('sequence_number_prefix', prefix);
+        preferences.set('sequence_number_suffix', suffix);
     }
 };
 

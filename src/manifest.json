@@ -6,7 +6,7 @@
     "homepage" : "https://github.com/Ashung/Sketch-Stuffing",
     "identifier" : "com.ashung.hung.stuffing",
     "suppliesData" : true,
-    "version" : "1.1.0",
+    "version" : "1.2.0",
     "icon": "icon.png",
     "appcast": "https://raw.githubusercontent.com/Ashung/Sketch-Stuffing/develop/.appcast.xml",
     "compatibleVersion": 3,
@@ -38,6 +38,7 @@
                     "SupplyCarNumbers": "onSupplyCarNumbers",
                     "SupplyIdCardNumbers": "onSupplyIdCardNumbers",
                     "SupplyCustomNumbers": "onSupplyCustomNumbers",
+                    "SupplySequenceNumbers": "onSupplySequenceNumbers",
                     
                     "SupplyTextFromFile": "onSupplyTextFromFile",
                     "SupplyImageFromFolder": "onSupplyImageFromFolder",

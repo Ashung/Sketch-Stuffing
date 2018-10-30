@@ -28,4 +28,12 @@ util.randomIntFromRange = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
+util.supplyCharToFitLength = function(str, char, length) {
+    if (length - str.length > 0) {
+        return char.repeat(length - str.length) + str;
+    } else {
+        return str;
+    }
+}
+
 module.exports = util;
