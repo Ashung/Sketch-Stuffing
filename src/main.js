@@ -1,10 +1,10 @@
 const DataSupplier = require("sketch/data-supplier");
+const Settings = require('sketch/settings');
 
 // Custom modules
 const ui = require('./lib/ui');
 const du = require('./lib/data_util');
 const sys = require('./lib/system');
-const preferences = require('./lib/preferences');
 
 // Data
 const DATA_SURNAMES = require('./data/surnames.json');
@@ -40,8 +40,9 @@ export function onStartup () {
     DataSupplier.registerDataSupplier('public.text', '号码 - 车牌号', 'SupplyCarNumbers');
     DataSupplier.registerDataSupplier('public.text', '号码 - 身份证号', 'SupplyIdCardNumbers');
     DataSupplier.registerDataSupplier('public.text', '号码 - 自定义编号', 'SupplyCustomNumbers');
-    DataSupplier.registerDataSupplier('public.text', '号码 - 自定义数值', 'SupplySequenceNumbers');
+    DataSupplier.registerDataSupplier('public.text', '号码 - 自定义序列数值', 'SupplySequenceNumbers')
     DataSupplier.registerDataSupplier('public.text', '号码 - 连续数值', 'SupplyNumericalSeries');
+    DataSupplier.registerDataSupplier('public.text', '定制 - 自定义表达式', 'SupplyExpression');
     DataSupplier.registerDataSupplier('public.text', '定制 - 从文件载入', 'SupplyTextFromFile');
     DataSupplier.registerDataSupplier('public.image', '定制 - 从文件夹载入', 'SupplyImageFromFolder');
     DataSupplier.registerDataSupplier('public.text', '定制 - 从文件随机载入', 'SupplyRandomTextFromFile');
@@ -322,13 +323,13 @@ export function onSupplyCustomNumbers (context) {
     });
     formatTitles = ['自定义'].concat(formatTitles);
     let commonFormats = ui.popupButton(formatTitles);
-    let defaultFormatIndex = preferences.get('custom_number_preset_index') || 0;
+    let defaultFormatIndex = Settings.settingForKey('custom_number_preset_index') || 0;
     commonFormats.selectItemAtIndex(defaultFormatIndex);
     dialog.addAccessoryView(commonFormats);
 
-    let customNumberChars = preferences.get('custom_number_chars') || DATA_ID_NUMBER_FORMATS[0]['chars'];
-    let customNumberTemplate = preferences.get('custom_number_template') || DATA_ID_NUMBER_FORMATS[0]['template'];
-    let customNumberFormat = preferences.get('custom_number_format') || DATA_ID_NUMBER_FORMATS[0]['format'];
+    let customNumberChars = Settings.settingForKey('custom_number_chars') || DATA_ID_NUMBER_FORMATS[0]['chars'];
+    let customNumberTemplate = Settings.settingForKey('custom_number_template') || DATA_ID_NUMBER_FORMATS[0]['template'];
+    let customNumberFormat = Settings.settingForKey('custom_number_format') || DATA_ID_NUMBER_FORMATS[0]['format'];
     let defaultUseChars, defaultTemplate, defaultFormat;
     if (commonFormats.indexOfSelectedItem() === 0) {
         defaultUseChars = customNumberChars;
@@ -371,7 +372,7 @@ export function onSupplyCustomNumbers (context) {
     let responseCode = dialog.runModal();
     if (responseCode === 1000) {
         let doSetDefaultCustomNumber = false;
-        preferences.set('custom_number_preset_index', commonFormats.indexOfSelectedItem());
+        Settings.setSettingForKey('custom_number_preset_index', commonFormats.indexOfSelectedItem());
         if (commonFormats.indexOfSelectedItem() === 0) {
             doSetDefaultCustomNumber = true;
         } else {
@@ -381,14 +382,14 @@ export function onSupplyCustomNumbers (context) {
                 String(inputTemplate.stringValue()) !== DATA_ID_NUMBER_FORMATS[dataIndex]['template'] ||
                 String(inputFormat.stringValue()) !== DATA_ID_NUMBER_FORMATS[dataIndex]['format']
             ) {
-                preferences.set('custom_number_preset_index', 0);
+                Settings.setSettingForKey('custom_number_preset_index', 0);
                 doSetDefaultCustomNumber = true;
             }
         }
         if (doSetDefaultCustomNumber) {
-            preferences.set('custom_number_chars', inputUseChars.stringValue());
-            preferences.set('custom_number_template', inputTemplate.stringValue());
-            preferences.set('custom_number_format', inputFormat.stringValue());
+            Settings.setSettingForKey('custom_number_chars', inputUseChars.stringValue());
+            Settings.setSettingForKey('custom_number_template', inputTemplate.stringValue());
+            Settings.setSettingForKey('custom_number_format', inputFormat.stringValue());
         }
 
         for (let i = 0; i < context.data.requestedCount; i++) {
@@ -404,12 +405,12 @@ export function onSupplyCustomNumbers (context) {
 export function onSupplySequenceNumbers (context) {
     let dialog = ui.dialog('自定义序列数值');
 
-    let defaultStart = preferences.get('sequence_number_start') || 1;
-    let defaultType = preferences.get('sequence_number_type') || 0;
-    let defaultIncrease = preferences.get('sequence_number_increase') || 1;
-    let defaultLength = preferences.get('sequence_number_length') || 1;
-    let defaultPrefix = preferences.get('sequence_number_prefix') || '';
-    let defaultSuffix = preferences.get('sequence_number_suffix') || '';
+    let defaultStart = Settings.settingForKey('sequence_number_start') || 1;
+    let defaultType = Settings.settingForKey('sequence_number_type') || 0;
+    let defaultIncrease = Settings.settingForKey('sequence_number_increase') || 1;
+    let defaultLength = Settings.settingForKey('sequence_number_length') || 1;
+    let defaultPrefix = Settings.settingForKey('sequence_number_prefix') || '';
+    let defaultSuffix = Settings.settingForKey('sequence_number_suffix') || '';
 
     let label0 = ui.label('起始数字 (只允许整数)');
     dialog.addAccessoryView(label0);
@@ -470,7 +471,8 @@ export function onSupplySequenceNumbers (context) {
                 start = start + du.randomIntFromRange(1, increase) * du.randomOne([1, -1], Math.pow(Math.random(), 2.5));
             }
             else if (increaseType === 3) {
-                data.push(du.randomIntFromRange(start - increase, start + increase));
+                let item = (i === 0) ? start : du.randomIntFromRange(start - increase, start + increase);
+                data.push(item);
             }
         }
         data = data.map(item => {
@@ -479,12 +481,38 @@ export function onSupplySequenceNumbers (context) {
         });
         supplyOrderedData(context, data);
 
-        preferences.set('sequence_number_start', parseInt(inputStart.stringValue()));
-        preferences.set('sequence_number_type', increaseType);
-        preferences.set('sequence_number_increase', increase);
-        preferences.set('sequence_number_length', length);
-        preferences.set('sequence_number_prefix', prefix);
-        preferences.set('sequence_number_suffix', suffix);
+        Settings.setSettingForKey('sequence_number_start', parseInt(inputStart.stringValue()));
+        Settings.setSettingForKey('sequence_number_type', increaseType);
+        Settings.setSettingForKey('sequence_number_increase', increase);
+        Settings.setSettingForKey('sequence_number_length', length);
+        Settings.setSettingForKey('sequence_number_prefix', prefix);
+        Settings.setSettingForKey('sequence_number_suffix', suffix);
+    }
+};
+
+export function onSupplyExpression (context) {
+    let dialog = ui.dialog('自定义表达式', '通过 Javascript 表达式生成字符串，结果必须为数值或字符串。可用变量 "i" 为图层索引，"length" 为选中图层数。');
+
+    let defaultExpression = Settings.settingForKey('expression_string') || 'length + "-" + i';
+    let inputExpression = ui.input(defaultExpression);
+    dialog.addAccessoryView(inputExpression);
+
+    let responseCode = dialog.runModal();
+    if (responseCode === 1000) {
+        let data = [];
+        let length = context.data.requestedCount;
+        for (let i = 0; i < length; i++) {
+            let item;
+            let expressionString = String(inputExpression.stringValue());
+            try {
+                item = eval(expressionString);
+            } catch (err) {
+                item = err.message;
+            }
+            data.push(String(item));
+        }
+        supplyOrderedData(context, data);
+        Settings.setSettingForKey('expression_string', inputExpression.stringValue());
     }
 };
 

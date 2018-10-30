@@ -26,5 +26,6 @@
     "type": "git",
     "url": "git+https://github.com/Ashung/Sketch-Stuffing.git"
   },
-  "author": "Ashung <ashung.hung@gmail.com>"
+  "author": "Ashung <ashung.hung@gmail.com>",
+  "license": "MIT"
 }

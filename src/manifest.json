@@ -39,7 +39,7 @@
                     "SupplyIdCardNumbers": "onSupplyIdCardNumbers",
                     "SupplyCustomNumbers": "onSupplyCustomNumbers",
                     "SupplySequenceNumbers": "onSupplySequenceNumbers",
-                    
+                    "SupplyExpression": "onSupplyExpression",
                     "SupplyTextFromFile": "onSupplyTextFromFile",
                     "SupplyImageFromFolder": "onSupplyImageFromFolder",
                     "SupplyRandomTextFromFile": "onSupplyRandomTextFromFile"
