@@ -491,19 +491,21 @@ export function onSupplySequenceNumbers (context) {
 };
 
 export function onSupplyExpression (context) {
-    let dialog = ui.dialog('自定义表达式', '通过 Javascript 表达式生成字符串，结果必须为数值或字符串。可用变量 "i" 为图层索引，"length" 为选中图层数。');
+    let dialog = ui.dialog('自定义表达式', '通过 Javascript 表达式生成字符串，结果必须为数值或字符串。\n\n可用变量: 数组 "data" 保存前几次遍历时表达式返回的所有字符串结果；整型 "i" 为当前图层索引；整型 "length" 为选中图层数；"temp" 为未定义全局变量。');
 
-    let defaultExpression = Settings.settingForKey('expression_string') || 'length + "-" + i';
+    let defaultExpression = Settings.settingForKey('expression_string') || 'length + "-" + (i + 1)';
     let inputExpression = ui.input(defaultExpression);
+    inputExpression.setFrame(NSMakeRect(0, 0, 300, 60));
     dialog.addAccessoryView(inputExpression);
 
     let responseCode = dialog.runModal();
     if (responseCode === 1000) {
         let data = [];
+        let temp;
         let length = context.data.requestedCount;
         for (let i = 0; i < length; i++) {
-            let item;
             let expressionString = String(inputExpression.stringValue());
+            let item;
             try {
                 item = eval(expressionString);
             } catch (err) {
