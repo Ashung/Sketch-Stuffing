@@ -24,6 +24,8 @@ export function onStartup () {
     DataSupplier.registerDataSupplier('public.text', '时间 - 农历月', 'SupplyMonths');
     DataSupplier.registerDataSupplier('public.text', '时间 - 农历日', 'SupplyDays');
     DataSupplier.registerDataSupplier('public.text', '时间 - 星期', 'SupplyWeekdays');
+    DataSupplier.registerDataSupplier('public.text', '时间 - 友好格式', 'SupplyFriendlyDate');
+    DataSupplier.registerDataSupplier('public.text', '时间 - 自定义格式', 'SupplyFormatedDate');
     DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名', 'SupplyFullNames');
     DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名男', 'SupplyMaleFullNames');
     DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名女', 'SupplyFemaleFullNames');
@@ -261,14 +263,14 @@ export function onSupplyProvinceAndCities (context) {
 // Numbers
 
 export function onSupplyMobileNumbers (context) {
-    let prefixs = [
+    let prefixes = [
         139,138,137,136,135,134,159,158,157,150,151,152,147,188,187,182,183,184,178,
         130,131,132,156,155,186,185,145,176,
         133,153,189,180,181,177,173
     ];
     let numbers = '0123456789';
     for (let i = 0; i < context.data.requestedCount; i++) {
-        let text = String(du.randomOne(prefixs)) + ' ';
+        let text = String(du.randomOne(prefixes)) + ' ';
         text += du.randomStringUseChars_length(numbers, 4) + ' ';
         text += du.randomStringUseChars_length(numbers, 4);
         DataSupplier.supplyDataAtIndex(context.data.key, text, i);
@@ -548,7 +550,183 @@ export function onSupplyRandomImageFromFolder (context) {
     }
 };
 
-//
+// Date time
+
+export function onSupplyFriendlyDate (context) {
+    let formatTitles = [
+        'n分钟前 - n小时前 - n天前 - YYYY/M/d h:mm',
+        'n分钟前 - n小时前 - n天前 - n月前 - n年前',
+        'h:mm - 昨天 - 星期n - YYYY/M/d',
+        '今天 hh:mm - 星期n hh:mm - M月d日 hh:mm'
+    ];
+
+    let dialog = ui.dialog('友好时间格式', '选择一种友好时间格式。');
+    let commonFormats = ui.popupButton(formatTitles);
+    let defaultFormatIndex = Settings.settingForKey('friendly_date_format_index') || 0;
+    commonFormats.selectItemAtIndex(defaultFormatIndex);
+    dialog.addAccessoryView(commonFormats);
+
+    let responseCode = dialog.runModal();
+    if (responseCode === 1000) {
+        let dates;
+        if (commonFormats.indexOfSelectedItem() === 0) {
+            dates = friendlyDateFormat1();
+        }
+        else if (commonFormats.indexOfSelectedItem() === 1) {
+            dates = friendlyDateFormat2();
+        }
+        else if (commonFormats.indexOfSelectedItem() === 2) {
+            dates = friendlyDateFormat3();
+        }
+        else if (commonFormats.indexOfSelectedItem() === 3) {
+            dates = friendlyDateFormat4();
+        }
+        if (dates.length === Number(context.data.requestedCount)) {
+            supplyOrderedData(context, dates);
+        }
+        Settings.setSettingForKey('friendly_date_format_index', commonFormats.indexOfSelectedItem());
+    }
+
+    function friendlyDateFormat1() {
+        let dates = [];
+        let now = new Date().getTime();
+        let time = 0;
+        let count = context.data.requestedCount;
+        for (let i = 0; i < count; i++) {
+            // 1 day = 86400000
+            // 1 hour = 3600000
+            if (i < 2) {
+                time += du.randomIntFromRange(0, 3600000 / 2);
+            }
+            else if (i < 4) {
+                time += du.randomIntFromRange(3600000 / 2, 86400000 / 2);
+            }
+            else if (i < 6) {
+                time += du.randomIntFromRange(86400000 / 2, 86400000 * 3);
+            }
+            else {
+                time += du.randomIntFromRange(86400000, 86400000 * 30);
+            }
+            if (time < 60 * 60 * 1000) {
+                dates.push(Math.floor(time / (60 * 1000)) + ' 分钟前');
+            }
+            else if (time < 24 * 60 * 60 * 1000) {
+                dates.push(Math.floor(time / (60 * 60 * 1000)) + ' 小时前');
+            }
+            else if (time < 7 * 24 * 60 * 60 * 1000) {
+                dates.push(Math.floor(time / (24 * 60 * 60 * 1000)) + ' 天前');
+            }
+            else {
+                let randomDate = new Date(now - time);
+                let hour = randomDate.getHours();
+                let minute = (randomDate.getMinutes() > 9 ? '' : '0') + randomDate.getMinutes();
+                dates.push(randomDate.toLocaleDateString() + ' ' + hour + ':' + minute);
+            }
+        }
+        return dates;
+    }
+    function friendlyDateFormat2() {
+        let dates = [];
+        let time = 0;
+        let count = context.data.requestedCount;
+        for (let i = 0; i < count; i++) {
+            time += du.randomIntFromRange(i * 3600000, 86400000 * Math.pow(i + 1, 2));
+            if (time < 60 * 60 * 1000) {
+                dates.push(Math.floor(time / (60 * 1000)) + ' 分钟前');
+            }
+            else if (time < 24 * 60 * 60 * 1000) {
+                dates.push(Math.floor(time / (60 * 60 * 1000)) + ' 小时前');
+            }
+            else if (time < 30 * 24 * 60 * 60 * 1000) {
+                dates.push(Math.floor(time / (24 * 60 * 60 * 1000)) + ' 天前');
+            }
+            else if (time < 12 * 30 * 24 * 60 * 60 * 1000) {
+                dates.push(Math.floor(time / (30 * 24 * 60 * 60 * 1000)) + ' 月前');
+            }
+            else {
+                dates.push(Math.floor(time / (12 * 30 * 24 * 60 * 60 * 1000)) + ' 年前');
+            }
+        }
+        return dates;
+    }
+    function friendlyDateFormat3() {
+        let dates = [];
+        let now = new Date();
+        let time = 0;
+        let count = context.data.requestedCount;
+        for (let i = 0; i < count; i++) {
+            time += du.randomIntFromRange(i * 3600000, 86400000 * (i + 1));
+            let randomDate = new Date(now.getTime() - time);
+            let date = randomDate.getDate();
+            let weekday = randomDate.getDay()
+            let hour = randomDate.getHours();
+            let minute = (randomDate.getMinutes() > 9 ? '' : '0') + randomDate.getMinutes();
+            if (date === now.getDate() && time < 86400000) {
+                dates.push(`${hour}:${minute}`);
+            }
+            else if (date === now.getDate() - 1 && time < 86400000 * 2) {
+                dates.push('昨天');
+            }
+            else if (time < 86400000 * 7) {
+                let weekdayWord = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][weekday];
+                dates.push(weekdayWord);
+            }
+            else {
+                dates.push(randomDate.toLocaleDateString());
+            }
+        }
+        return dates;
+    }
+    function friendlyDateFormat4() {
+        let dates = [];
+        let now = new Date();
+        let time = 0;
+        let count = context.data.requestedCount;
+        for (let i = 0; i < count; i++) {
+            time += du.randomIntFromRange(0, 86400000 / 4 * (i + 1));
+            let randomDate = new Date(now.getTime() - time);
+            let month = randomDate.getMonth();
+            let date = randomDate.getDate();
+            let weekday = randomDate.getDay()
+            let hour = randomDate.getHours();
+            let minute = (randomDate.getMinutes() > 9 ? '' : '0') + randomDate.getMinutes();
+            if (date === now.getDate() && time < 86400000) {
+                dates.push(`今天 ${hour}:${minute}`);
+            }
+            else if (date === now.getDate() - 1 && time < 86400000 * 2) {
+                dates.push(`昨天 ${hour}:${minute}`);
+            }
+            else if (time < 86400000 * 7) {
+                let weekdayWord = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][weekday];
+                dates.push(`${weekdayWord} ${hour}:${minute}`);
+            }
+            else {
+                dates.push(`${month}月${date}日 ${hour}:${minute}`);
+            }
+        }
+        return dates;
+    }
+};
+
+export function onSupplyFormatedDate (context) {
+    let dates = [];
+    let now = new Date();
+    let nowTimestamp, tempTimestamp = now.getTime();
+    for (let i = 0; i < context.data.requestedCount; i++) {
+        // 1 day = 86400000
+        // 1 second = 1000
+        tempTimestamp -= du.randomIntFromRange(1000 * 60, 86400000 * 10);
+
+        let randomDate = new Date(tempTimestamp);
+        dates.push(String(randomDate));
+    }
+
+    // 
+
+    supplyOrderedData(context, dates);
+};
+
+// Supply data functions
 
 function supplyOrderedData(context, data, start) {
     if (!start) start = 0;

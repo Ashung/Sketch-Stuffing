@@ -18,10 +18,11 @@
                 "actions": {
                     "Startup": "onStartup",
                     "Shutdown": "onShutdown",
-
                     "SupplyMonths": "onSupplyMonths",
                     "SupplyWeekdays": "onSupplyWeekdays",
                     "SupplyDays": "onSupplyDays",
+                    "SupplyFriendlyDate": "onSupplyFriendlyDate",
+                    "SupplyFormatedDate": "onSupplyFormatedDate",
                     "SupplyFullNames": "onSupplyFullNames",
                     "SupplyMaleFullNames": "onSupplyMaleFullNames",
                     "SupplyFemaleFullNames": "onSupplyFemaleFullNames",
@@ -42,7 +43,8 @@
                     "SupplyExpression": "onSupplyExpression",
                     "SupplyTextFromFile": "onSupplyTextFromFile",
                     "SupplyImageFromFolder": "onSupplyImageFromFolder",
-                    "SupplyRandomTextFromFile": "onSupplyRandomTextFromFile"
+                    "SupplyRandomTextFromFile": "onSupplyRandomTextFromFile",
+                    "SupplyRandomImageFromFolder": "onSupplyRandomImageFromFolder"
                 }
             }
         }
