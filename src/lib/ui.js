@@ -1,3 +1,4 @@
+const date = require('./date');
 
 const ui = {};
 
@@ -66,7 +67,7 @@ ui.stepper = function(min, max, defaultValue) {
     let stepper = NSStepper.alloc().initWithFrame(NSMakeRect(68, 0, 16, 24));
     stepper.setMaxValue(max);
     stepper.setMinValue(min);
-    stepper.setValueWraps(false);
+    stepper.setValueWraps(true);
     stepper.setAutorepeat(true);
     stepper.setIntegerValue(defaultValue);
     view.addSubview(input);
@@ -75,6 +76,23 @@ ui.stepper = function(min, max, defaultValue) {
         input.setStringValue(String(sender.integerValue()));
     });
     return view;
+};
+
+ui.datePicker = function(timestamp) {
+    let datePicker = NSDatePicker.alloc().initWithFrame(NSMakeRect(0, 0, 300, 24));
+    datePicker.setDatePickerStyle(NSTextFieldAndStepperDatePickerStyle);
+    datePicker.setDrawsBackground(true);
+    datePicker.setBackgroundColor(NSColor.whiteColor());
+    datePicker.setDatePickerMode(NSSingleDateMode);
+    let defaultDate;
+    if (timestamp) {
+        defaultDate = date.timestampToNsDate(timestamp);
+    }
+    else {
+        defaultDate = NSDate.date();
+    }
+    datePicker.setDateValue(defaultDate);
+    return datePicker;
 };
 
 module.exports = ui;

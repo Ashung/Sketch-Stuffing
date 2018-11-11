@@ -24,8 +24,35 @@ util.randomStringUseChars_length = function(chars, length) {
     return result;
 };
 
-util.randomIntFromRange = function(min, max) {
+util.randomIntFromRange = function(start, finish) {
+    let max = Math.max(start, finish);
+    let min = Math.min(start, finish);
     return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+util.sortedIntArrayFromRange = function(start, finish, length) {
+    let data = [];
+    let rangeLength = Math.abs(finish - start) + 1;
+    while (data.length < length) {
+        let item = this.randomIntFromRange(start, finish);
+        if (data.length < Math.min(rangeLength, length)) {
+            if (data.indexOf(item) === -1) {
+                data.push(item);
+            }
+        }
+        else {
+            data.push(item);
+        }
+    }
+    data.sort((a, b) => {
+        if (start < finish) {
+            return a - b;
+        }
+        else {
+            return b - a;
+        }
+    });
+    return data;
 };
 
 util.supplyCharToFitLength = function(str, char, length) {

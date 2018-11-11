@@ -5,8 +5,11 @@ const Settings = require('sketch/settings');
 const ui = require('./lib/ui');
 const du = require('./lib/data_util');
 const sys = require('./lib/system');
+const date = require('./lib/date');
 
 // Data
+const DATA_MONTHS = require('./data/months.json');
+const DATA_DAYS = require('./data/days.json');
 const DATA_SURNAMES = require('./data/surnames.json');
 const DATA_FIRST_NAMES_MALE = require('./data/first_name_male.json');
 const DATA_FIRST_NAMES_FEMALE = require('./data/first_name_female.json');
@@ -21,11 +24,11 @@ const DATA_EMAILS = require('./data/free_emails.json');
 const DATA_ID_NUMBER_FORMATS = require('./data/id_number_format.json');
 
 export function onStartup () {
-    DataSupplier.registerDataSupplier('public.text', '时间 - 农历月', 'SupplyMonths');
-    DataSupplier.registerDataSupplier('public.text', '时间 - 农历日', 'SupplyDays');
+    DataSupplier.registerDataSupplier('public.text', '时间 - 月份', 'SupplyMonths');
+    DataSupplier.registerDataSupplier('public.text', '时间 - 农历日期', 'SupplyDays');
     DataSupplier.registerDataSupplier('public.text', '时间 - 星期', 'SupplyWeekdays');
-    DataSupplier.registerDataSupplier('public.text', '时间 - 友好格式', 'SupplyFriendlyDate');
-    DataSupplier.registerDataSupplier('public.text', '时间 - 自定义格式', 'SupplyFormatedDate');
+    DataSupplier.registerDataSupplier('public.text', '时间 - 随机友好格式', 'SupplyFriendlyDate');
+    DataSupplier.registerDataSupplier('public.text', '时间 - 随机自定义格式', 'SupplyFormatedDate');
     DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名', 'SupplyFullNames');
     DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名男', 'SupplyMaleFullNames');
     DataSupplier.registerDataSupplier('public.text', '姓名 - 中文名女', 'SupplyFemaleFullNames');
@@ -58,42 +61,62 @@ export function onShutdown () {
 // Calendar
 
 export function onSupplyMonths (context) {
-    const DATA_MONTHS = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','腊月'];
-    let dialog = ui.dialog('农历月');
-    let label = ui.label('起始');
-    dialog.addAccessoryView(label);
-    let stepper = ui.stepper(1, 12, 1);
+    let dialog = ui.dialog('月份', '选择月份格式和起始月份。');
+
+    let label1 = ui.label('格式');
+    dialog.addAccessoryView(label1);
+    let monthFormatTitles = DATA_MONTHS.map(item => {
+        return item.title;
+    });
+    let monthFormat = ui.popupButton(monthFormatTitles);
+    let defaultMonthFormat = Settings.settingForKey('month_format') || 0;
+    monthFormat.selectItemAtIndex(defaultMonthFormat);
+    dialog.addAccessoryView(monthFormat);
+    
+    let label2 = ui.label('起始');
+    dialog.addAccessoryView(label2);
+    let monthStart = Settings.settingForKey('month_start') || 1;
+    let stepper = ui.stepper(1, 12, monthStart);
     dialog.addAccessoryView(stepper);
+
     let responseCode = dialog.runModal();
     if (responseCode === 1000) {
+        let formatIndex = monthFormat.indexOfSelectedItem();
+        let data = DATA_MONTHS[formatIndex]['data'];
         let start = stepper.subviews().lastObject().integerValue();
-        supplyOrderedData(context, DATA_MONTHS, start - 1);
+        supplyOrderedData(context, data, start - 1);
+        Settings.setSettingForKey('month_format', monthFormat.indexOfSelectedItem());
+        Settings.setSettingForKey('month_start', start);
     }
 };
 
 export function onSupplyWeekdays (context) {
-    let dialog = ui.dialog('星期', '起始 0, 表示周日。');
+    let dialog = ui.dialog('星期', '选择星期格式和起始日。0 表示星期日。');
+
     let label1 = ui.label('格式');
     dialog.addAccessoryView(label1);
-    let popupButton = ui.popupButton(['星期日', '周日', '日']);
-    dialog.addAccessoryView(popupButton);
+    let dayFormatTitles = DATA_DAYS.map(item => {
+        return item.title;
+    });
+    let dayFormat = ui.popupButton(dayFormatTitles);
+    let defaultDayFormat = Settings.settingForKey('day_format') || 0;
+    dayFormat.selectItemAtIndex(defaultDayFormat);
+    dialog.addAccessoryView(dayFormat);
 
     let label2 = ui.label('起始');
     dialog.addAccessoryView(label2);
-    let stepper = ui.stepper(0, 6, 0);
+    let dayStart = Settings.settingForKey('day_start') || 0;
+    let stepper = ui.stepper(0, 6, dayStart);
     dialog.addAccessoryView(stepper);
 
     let responseCode = dialog.runModal();
     if (responseCode === 1000) {
-        let data = ['日','一','二','三','四','五','六'];
-        if (popupButton.indexOfSelectedItem() === 0) {
-            data = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
-        }
-        if (popupButton.indexOfSelectedItem() === 1) {
-            data = ['周日','周一','周二','周三','周四','周五','周六'];
-        }
+        let formatIndex = dayFormat.indexOfSelectedItem();
+        let data = DATA_DAYS[formatIndex]['data'];
         let start = stepper.subviews().lastObject().integerValue();
         supplyOrderedData(context, data, start);
+        Settings.setSettingForKey('day_format', dayFormat.indexOfSelectedItem());
+        Settings.setSettingForKey('day_start', start);
     }
 };
 
@@ -103,15 +126,20 @@ export function onSupplyDays (context) {
         '十一','十二','十三','十四','十五','十六','十七','十八','十九','廿十',
         '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','卅十'
     ];
+
     let dialog = ui.dialog('农历日');
+
     let label = ui.label('起始');
     dialog.addAccessoryView(label);
-    let stepper = ui.stepper(1, 30, 1);
+    let dateStart = Settings.settingForKey('date_start') || 1;
+    let stepper = ui.stepper(1, 30, dateStart);
     dialog.addAccessoryView(stepper);
+
     let responseCode = dialog.runModal();
     if (responseCode === 1000) {
         let start = stepper.subviews().lastObject().integerValue();
         supplyOrderedData(context, DATA_DAYS, start - 1);
+        Settings.setSettingForKey('date_start', start);
     }
 };
 
@@ -560,170 +588,248 @@ export function onSupplyFriendlyDate (context) {
         '今天 hh:mm - 星期n hh:mm - M月d日 hh:mm'
     ];
 
-    let dialog = ui.dialog('友好时间格式', '选择一种友好时间格式。');
+    let dialog = ui.dialog('随机时间 -- 友好时间格式', '从起始时间至结束时间按顺序随机提取一个时间点，并计算此时间与起始的间隔。');
+
+    let label1 = ui.label('时间格式');
+    dialog.addAccessoryView(label1);
     let commonFormats = ui.popupButton(formatTitles);
     let defaultFormatIndex = Settings.settingForKey('friendly_date_format_index') || 0;
     commonFormats.selectItemAtIndex(defaultFormatIndex);
     dialog.addAccessoryView(commonFormats);
 
+    let label2 = ui.label('时间起始 (当前时间)');
+    dialog.addAccessoryView(label2);
+    let startDate = ui.datePicker();
+    dialog.addAccessoryView(startDate);
+
+    let label3 = ui.label('时间结束');
+    dialog.addAccessoryView(label3);
+    let endDate = ui.datePicker();
+    let defaultEndTimestamp = Settings.settingForKey('friendly_date_end');
+    if (defaultEndTimestamp) {
+        let defaultEndDate = date.timestampToNsDate(defaultEndTimestamp);
+        endDate.setDateValue(defaultEndDate);
+    }
+    dialog.addAccessoryView(endDate);
+
     let responseCode = dialog.runModal();
     if (responseCode === 1000) {
-        let dates;
-        if (commonFormats.indexOfSelectedItem() === 0) {
-            dates = friendlyDateFormat1();
-        }
-        else if (commonFormats.indexOfSelectedItem() === 1) {
-            dates = friendlyDateFormat2();
-        }
-        else if (commonFormats.indexOfSelectedItem() === 2) {
-            dates = friendlyDateFormat3();
-        }
-        else if (commonFormats.indexOfSelectedItem() === 3) {
-            dates = friendlyDateFormat4();
-        }
-        if (dates.length === Number(context.data.requestedCount)) {
-            supplyOrderedData(context, dates);
-        }
+        let startTimestamp = date.nsDateToTimestamp(startDate.dateValue());
+        let endTimestamp = date.nsDateToTimestamp(endDate.dateValue());
+        let length = context.data.requestedCount;
+        let dates = du.sortedIntArrayFromRange(startTimestamp, endTimestamp, length);
+        dates = dates.map(item => {
+            if (commonFormats.indexOfSelectedItem() === 0) {
+                return friendlyDateFormat1(item, startTimestamp);
+            }
+            else if (commonFormats.indexOfSelectedItem() === 1) {
+                return friendlyDateFormat2(item, startTimestamp);
+            }
+            else if (commonFormats.indexOfSelectedItem() === 2) {
+                return friendlyDateFormat3(item, startTimestamp);
+            }
+            else if (commonFormats.indexOfSelectedItem() === 3) {
+                return friendlyDateFormat4(item, startTimestamp);
+            }
+            else {
+                return date.timestampToLocaleString(item);
+            }
+        });
+        supplyOrderedData(context, dates);
         Settings.setSettingForKey('friendly_date_format_index', commonFormats.indexOfSelectedItem());
+        Settings.setSettingForKey('friendly_date_end', endTimestamp);
     }
 
-    function friendlyDateFormat1() {
-        let dates = [];
-        let now = new Date().getTime();
-        let time = 0;
-        let count = context.data.requestedCount;
-        for (let i = 0; i < count; i++) {
-            // 1 day = 86400000
-            // 1 hour = 3600000
-            if (i < 2) {
-                time += du.randomIntFromRange(0, 3600000 / 2);
-            }
-            else if (i < 4) {
-                time += du.randomIntFromRange(3600000 / 2, 86400000 / 2);
-            }
-            else if (i < 6) {
-                time += du.randomIntFromRange(86400000 / 2, 86400000 * 3);
-            }
-            else {
-                time += du.randomIntFromRange(86400000, 86400000 * 30);
-            }
-            if (time < 60 * 60 * 1000) {
-                dates.push(Math.floor(time / (60 * 1000)) + ' 分钟前');
-            }
-            else if (time < 24 * 60 * 60 * 1000) {
-                dates.push(Math.floor(time / (60 * 60 * 1000)) + ' 小时前');
-            }
-            else if (time < 7 * 24 * 60 * 60 * 1000) {
-                dates.push(Math.floor(time / (24 * 60 * 60 * 1000)) + ' 天前');
-            }
-            else {
-                let randomDate = new Date(now - time);
-                let hour = randomDate.getHours();
-                let minute = (randomDate.getMinutes() > 9 ? '' : '0') + randomDate.getMinutes();
-                dates.push(randomDate.toLocaleDateString() + ' ' + hour + ':' + minute);
-            }
+    function friendlyDateFormat1(timestamp, base) {
+        let interval = base - timestamp;
+        let suffix = '前';
+        if (interval < 0) {
+            suffix = '后';
+            interval *= -1;
         }
-        return dates;
-    }
-    function friendlyDateFormat2() {
-        let dates = [];
-        let time = 0;
-        let count = context.data.requestedCount;
-        for (let i = 0; i < count; i++) {
-            time += du.randomIntFromRange(i * 3600000, 86400000 * Math.pow(i + 1, 2));
-            if (time < 60 * 60 * 1000) {
-                dates.push(Math.floor(time / (60 * 1000)) + ' 分钟前');
-            }
-            else if (time < 24 * 60 * 60 * 1000) {
-                dates.push(Math.floor(time / (60 * 60 * 1000)) + ' 小时前');
-            }
-            else if (time < 30 * 24 * 60 * 60 * 1000) {
-                dates.push(Math.floor(time / (24 * 60 * 60 * 1000)) + ' 天前');
-            }
-            else if (time < 12 * 30 * 24 * 60 * 60 * 1000) {
-                dates.push(Math.floor(time / (30 * 24 * 60 * 60 * 1000)) + ' 月前');
-            }
-            else {
-                dates.push(Math.floor(time / (12 * 30 * 24 * 60 * 60 * 1000)) + ' 年前');
-            }
+        if (interval < 60) {
+            return interval + ' 秒' + suffix;
         }
-        return dates;
-    }
-    function friendlyDateFormat3() {
-        let dates = [];
-        let now = new Date();
-        let time = 0;
-        let count = context.data.requestedCount;
-        for (let i = 0; i < count; i++) {
-            time += du.randomIntFromRange(i * 3600000, 86400000 * (i + 1));
-            let randomDate = new Date(now.getTime() - time);
-            let date = randomDate.getDate();
-            let weekday = randomDate.getDay()
+        else if (interval < 60 * 60) {
+            return Math.floor(interval / 60) + ' 分钟' + suffix;
+        }
+        else if (interval < 24 * 60 * 60) {
+            return Math.floor(interval / (60 * 60)) + ' 小时' + suffix;
+        }
+        else if (interval < 7 * 24 * 60 * 60) {
+            return Math.floor(interval / (24 * 60 * 60)) + ' 天' + suffix;
+        }
+        else {
+            let randomDate = new Date(timestamp * 1000);
             let hour = randomDate.getHours();
             let minute = (randomDate.getMinutes() > 9 ? '' : '0') + randomDate.getMinutes();
-            if (date === now.getDate() && time < 86400000) {
-                dates.push(`${hour}:${minute}`);
-            }
-            else if (date === now.getDate() - 1 && time < 86400000 * 2) {
-                dates.push('昨天');
-            }
-            else if (time < 86400000 * 7) {
-                let weekdayWord = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][weekday];
-                dates.push(weekdayWord);
-            }
-            else {
-                dates.push(randomDate.toLocaleDateString());
-            }
+            return randomDate.toLocaleDateString() + ' ' + hour + ':' + minute;
         }
-        return dates;
     }
-    function friendlyDateFormat4() {
-        let dates = [];
-        let now = new Date();
-        let time = 0;
-        let count = context.data.requestedCount;
-        for (let i = 0; i < count; i++) {
-            time += du.randomIntFromRange(0, 86400000 / 4 * (i + 1));
-            let randomDate = new Date(now.getTime() - time);
-            let month = randomDate.getMonth();
-            let date = randomDate.getDate();
-            let weekday = randomDate.getDay()
-            let hour = randomDate.getHours();
-            let minute = (randomDate.getMinutes() > 9 ? '' : '0') + randomDate.getMinutes();
-            if (date === now.getDate() && time < 86400000) {
-                dates.push(`今天 ${hour}:${minute}`);
+    function friendlyDateFormat2(timestamp, base) {
+        let interval = base - timestamp;
+        let suffix = '前';
+        if (interval < 0) {
+            suffix = '后';
+            interval *= -1;
+        }
+        if (interval < 60) {
+            return interval + ' 秒' + suffix;
+        }
+        else if (interval < 60 * 60) {
+            return Math.floor(interval / 60) + ' 分钟' + suffix;
+        }
+        else if (interval < 24 * 60 * 60) {
+            return Math.floor(interval / (60 * 60)) + ' 小时' + suffix;
+        }
+        else if (interval < 30 * 24 * 60 * 60) {
+            return Math.floor(interval / (24 * 60 * 60)) + ' 天' + suffix;
+        }
+        else if (interval < 12 * 30 * 24 * 60 * 60) {
+            return Math.floor(interval / (30 * 24 * 60 * 60)) + ' 月' + suffix;
+        }
+        else {
+            return Math.floor(interval / (12 * 30 * 24 * 60 * 60)) + ' 年' + suffix;
+        }
+    }
+    function friendlyDateFormat3(timestamp, base) {
+        let now = date.timestampToDate(base);
+        let interval = base - timestamp;
+        let randomDate = date.timestampToDate(timestamp);
+        let dateDay = randomDate.getDate();
+        let weekday = randomDate.getDay()
+        let hour = randomDate.getHours();
+        let minute = (randomDate.getMinutes() > 9 ? '' : '0') + randomDate.getMinutes();
+        if (interval > 0) {
+            if (dateDay === now.getDate() && interval < 86400) {
+                return `${hour}:${minute}`;
             }
-            else if (date === now.getDate() - 1 && time < 86400000 * 2) {
-                dates.push(`昨天 ${hour}:${minute}`);
+            else if (dateDay === now.getDate() - 1 && interval < 86400 * 2) {
+                return '昨天';
             }
-            else if (time < 86400000 * 7) {
-                let weekdayWord = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][weekday];
-                dates.push(`${weekdayWord} ${hour}:${minute}`);
+            else if (interval < 86400 * 7) {
+                return DATA_DAYS[0]['data'][weekday];
             }
             else {
-                dates.push(`${month}月${date}日 ${hour}:${minute}`);
+                return randomDate.toLocaleDateString();
             }
         }
-        return dates;
+        else {
+            if (dateDay === now.getDate() && interval > -86400) {
+                return `${hour}:${minute}`;
+            }
+            else if (dateDay === now.getDate() + 1 && interval > -86400 * 2) {
+                return '明天';
+            }
+            else if (dateDay === now.getDate() + 2 && interval > -86400 * 3) {
+                return '后天';
+            }
+            else if (interval > -86400 * 7) {
+                return DATA_DAYS[0]['data'][weekday];
+            }
+            else {
+                return randomDate.toLocaleString();
+            }
+        }
+    }
+    function friendlyDateFormat4(timestamp, base) {
+        let now = date.timestampToDate(base);
+        let interval = base - timestamp;
+        let randomDate = date.timestampToDate(timestamp);
+        let month = randomDate.getMonth();
+        let dateDay = randomDate.getDate();
+        let weekday = randomDate.getDay()
+        let hour = randomDate.getHours();
+        let minute = (randomDate.getMinutes() > 9 ? '' : '0') + randomDate.getMinutes();
+        if (interval > 0) {
+            if (dateDay === now.getDate() && interval < 86400) {
+                return `今天 ${hour}:${minute}`;
+            }
+            else if (interval < 86400 * 7) {
+                return `${DATA_DAYS[0]['data'][weekday]} ${hour}:${minute}`;
+            }
+            else {
+                return `${month}月${dateDay}日 ${hour}:${minute}`;
+            }
+        }
+        else {
+            if (dateDay === now.getDate() && interval > -86400) {
+                return `今天 ${hour}:${minute}`;
+            }
+            else if (interval > -86400 * 7) {
+                return `${month}月${dateDay}日 ${hour}:${minute}`;
+            }
+            else {
+                return `${month}月${dateDay}日 ${hour}:${minute}`;
+            }
+        }
     }
 };
 
 export function onSupplyFormatedDate (context) {
-    let dates = [];
-    let now = new Date();
-    let nowTimestamp, tempTimestamp = now.getTime();
-    for (let i = 0; i < context.data.requestedCount; i++) {
-        // 1 day = 86400000
-        // 1 second = 1000
-        tempTimestamp -= du.randomIntFromRange(1000 * 60, 86400000 * 10);
+    let supportedLanguages = {
+        "zh_Hans": "中文简体",
+        "zh_Hant": "中文繁體",
+        "en_US": "英文"
+    };
 
-        let randomDate = new Date(tempTimestamp);
-        dates.push(String(randomDate));
+    let dialog = ui.dialog('随机时间 -- 自定义格式', '从起始时间至结束时间按顺序随机提取一个时间点，并按照用户输入模式格式化时间。\n\n时间格式化规范请参考 http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Format_Patterns。');
+
+    let label1 = ui.label('语言');
+    dialog.addAccessoryView(label1);
+    let dateLanguage = ui.popupButton(Object.values(supportedLanguages));
+    let defaultDateLanguageIndex = Settings.settingForKey('formated_date_language_index') || 0;
+    dateLanguage.selectItemAtIndex(defaultDateLanguageIndex);
+    dialog.addAccessoryView(dateLanguage);
+
+    let label2 = ui.label('时间格式化');
+    dialog.addAccessoryView(label2);
+    let defaultDateFormat = Settings.settingForKey('formated_date_format') || 'yyyy-MM-dd HH:mm:ss';
+    let dateFormat = ui.input(defaultDateFormat);
+    dialog.addAccessoryView(dateFormat);
+
+    let label3 = ui.label('时间起始');
+    dialog.addAccessoryView(label3);
+    let startDate = ui.datePicker();
+    let defaultStartTimestamp = Settings.settingForKey('formated_date_start');
+    if (defaultStartTimestamp) {
+        let defaultStartDate = date.timestampToNsDate(defaultStartTimestamp);
+        startDate.setDateValue(defaultStartDate);
     }
+    dialog.addAccessoryView(startDate);
 
-    // 
+    let label4 = ui.label('时间结束');
+    dialog.addAccessoryView(label4);
+    let endDate = ui.datePicker();
+    let defaultEndTimestamp = Settings.settingForKey('formated_date_end');
+    if (defaultEndTimestamp) {
+        let defaultEndDate = date.timestampToNsDate(defaultEndTimestamp);
+        endDate.setDateValue(defaultEndDate);
+    }
+    dialog.addAccessoryView(endDate);
 
-    supplyOrderedData(context, dates);
+    let responseCode = dialog.runModal();
+    if (responseCode === 1000) {
+        let startTimestamp = date.nsDateToTimestamp(startDate.dateValue());
+        let endTimestamp = date.nsDateToTimestamp(endDate.dateValue());
+        let length = context.data.requestedCount;
+        let dates = du.sortedIntArrayFromRange(startTimestamp, endTimestamp, length);
+        dates = dates.map(item => {
+            let randomDate = date.timestampToNsDate(item);
+            let formatter = NSDateFormatter.alloc().init();
+            let localeIdentifier = Object.keys(supportedLanguages)[dateLanguage.indexOfSelectedItem()];
+            let locale = NSLocale.alloc().initWithLocaleIdentifier(localeIdentifier);
+            formatter.setLocale(locale);
+            formatter.setDateFormat(dateFormat.stringValue());
+            let randomDateFormatedString = formatter.stringFromDate(randomDate);
+            return String(randomDateFormatedString);
+        });
+        supplyOrderedData(context, dates);
+        Settings.setSettingForKey('formated_date_language_index', dateLanguage.indexOfSelectedItem());
+        Settings.setSettingForKey('formated_date_format', dateFormat.stringValue());
+        Settings.setSettingForKey('formated_date_start', startTimestamp);
+        Settings.setSettingForKey('formated_date_end', endTimestamp);
+    }
 };
 
 // Supply data functions
