@@ -23,6 +23,8 @@
                     "SupplyDays": "onSupplyDays",
                     "SupplyFriendlyDate": "onSupplyFriendlyDate",
                     "SupplyFormatedDate": "onSupplyFormatedDate",
+                    "SupplyCalendar": "onSupplyCalendar",
+                    "SupplyChineseCalendar": "onSupplyChineseCalendar",
                     "SupplyFullNames": "onSupplyFullNames",
                     "SupplyMaleFullNames": "onSupplyMaleFullNames",
                     "SupplyFemaleFullNames": "onSupplyFemaleFullNames",
