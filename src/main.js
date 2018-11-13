@@ -8,8 +8,6 @@ const sys = require('./lib/system');
 const date = require('./lib/date');
 
 // Data
-const DATA_MONTHS = require('./data/months.json');
-const DATA_DAYS = require('./data/days.json');
 const DATA_CHINESE_LUNAR_DAYS = require('./data/chinese_lunar_days.json');
 const DATA_SURNAMES = require('./data/surnames.json');
 const DATA_FIRST_NAMES_MALE = require('./data/first_name_male.json');
@@ -25,9 +23,6 @@ const DATA_EMAILS = require('./data/free_emails.json');
 const DATA_ID_NUMBER_FORMATS = require('./data/id_number_format.json');
 
 export function onStartup () {
-    DataSupplier.registerDataSupplier('public.text', '日历 - 月份', 'SupplyMonths');
-    DataSupplier.registerDataSupplier('public.text', '日历 - 农历日期', 'SupplyDays');
-    DataSupplier.registerDataSupplier('public.text', '日历 - 星期', 'SupplyWeekdays');
     DataSupplier.registerDataSupplier('public.text', '日历 - 阳历', 'SupplyCalendar');
     DataSupplier.registerDataSupplier('public.text', '日历 - 农历', 'SupplyChineseCalendar');
     DataSupplier.registerDataSupplier('public.text', '时间 - 随机友好格式', 'SupplyFriendlyDate');
@@ -59,88 +54,6 @@ export function onStartup () {
 
 export function onShutdown () {
     DataSupplier.deregisterDataSuppliers();
-};
-
-// Calendar
-
-export function onSupplyMonths (context) {
-    let dialog = ui.dialog('月份', '选择月份格式和起始月份。');
-
-    let label1 = ui.label('格式');
-    dialog.addAccessoryView(label1);
-    let monthFormatTitles = DATA_MONTHS.map(item => {
-        return item.title;
-    });
-    let monthFormat = ui.popupButton(monthFormatTitles);
-    let defaultMonthFormat = Settings.settingForKey('month_format') || 0;
-    monthFormat.selectItemAtIndex(defaultMonthFormat);
-    dialog.addAccessoryView(monthFormat);
-    
-    let label2 = ui.label('起始');
-    dialog.addAccessoryView(label2);
-    let monthStart = Settings.settingForKey('month_start') || 1;
-    let stepper = ui.stepper(1, 12, monthStart);
-    let stepperView = ui.stepperWithTextField(stepper);
-    dialog.addAccessoryView(stepperView);
-
-    let responseCode = dialog.runModal();
-    if (responseCode === 1000) {
-        let formatIndex = monthFormat.indexOfSelectedItem();
-        let data = DATA_MONTHS[formatIndex]['data'];
-        let start = stepper.integerValue();
-        supplyOrderedData(context, data, start - 1);
-        Settings.setSettingForKey('month_format', monthFormat.indexOfSelectedItem());
-        Settings.setSettingForKey('month_start', start);
-    }
-};
-
-export function onSupplyWeekdays (context) {
-    let dialog = ui.dialog('星期', '选择星期格式和起始日。0 表示星期日。');
-
-    let label1 = ui.label('格式');
-    dialog.addAccessoryView(label1);
-    let dayFormatTitles = DATA_DAYS.map(item => {
-        return item.title;
-    });
-    let dayFormat = ui.popupButton(dayFormatTitles);
-    let defaultDayFormat = Settings.settingForKey('day_format') || 0;
-    dayFormat.selectItemAtIndex(defaultDayFormat);
-    dialog.addAccessoryView(dayFormat);
-
-    let label2 = ui.label('起始');
-    dialog.addAccessoryView(label2);
-    let dayStart = Settings.settingForKey('day_start') || 0;
-    let stepper = ui.stepper(0, 6, dayStart);
-    let stepperView = ui.stepperWithTextField(stepper);
-    dialog.addAccessoryView(stepperView);
-
-    let responseCode = dialog.runModal();
-    if (responseCode === 1000) {
-        let formatIndex = dayFormat.indexOfSelectedItem();
-        let data = DATA_DAYS[formatIndex]['data'];
-        let start = stepper.integerValue();
-        supplyOrderedData(context, data, start);
-        Settings.setSettingForKey('day_format', dayFormat.indexOfSelectedItem());
-        Settings.setSettingForKey('day_start', start);
-    }
-};
-
-export function onSupplyDays (context) {
-    let dialog = ui.dialog('农历日');
-
-    let label = ui.label('起始');
-    dialog.addAccessoryView(label);
-    let dateStart = Settings.settingForKey('date_start') || 1;
-    let stepper = ui.stepper(1, 30, dateStart);
-    let stepperView = ui.stepperWithTextField(stepper);
-    dialog.addAccessoryView(stepperView);
-
-    let responseCode = dialog.runModal();
-    if (responseCode === 1000) {
-        let start = stepper.integerValue();
-        supplyOrderedData(context, DATA_CHINESE_LUNAR_DAYS, start - 1);
-        Settings.setSettingForKey('date_start', start);
-    }
 };
 
 // Person name
@@ -522,7 +435,7 @@ export function onSupplySequenceNumbers (context) {
 };
 
 export function onSupplyExpression (context) {
-    let dialog = ui.dialog('自定义表达式', '通过 Javascript 表达式生成字符串，结果必须为数值或字符串。\n\n可用变量: 数组 "data" 保存前几次遍历时表达式返回的所有字符串结果；整型 "i" 为当前图层索引；整型 "length" 为选中图层数；"temp" 为未定义全局变量。');
+    let dialog = ui.dialog('自定义表达式', '通过 Javascript 表达式生成字符串，结果必须为数值或字符串。\n\n可用变量: 数组 "data" 保存前几次遍历时表达式返回的所有字符串结果；整型 "i" 为当前图层索引；整型 "length" 为选中图层数；"temp" 为未定义全局变量; "layer" 为当前图层; "text" 为当前原始文本内容。');
 
     let defaultExpression = Settings.settingForKey('expression_string') || 'length + "-" + (i + 1)';
     let inputExpression = ui.input(defaultExpression);
@@ -535,6 +448,20 @@ export function onSupplyExpression (context) {
         let temp;
         let length = context.data.requestedCount;
         for (let i = 0; i < length; i++) {
+            let layer;
+            let text;
+            if (context.data.isSymbolInstanceOverride) {
+                layer = context.data.items.objectAtIndex(i).symbolInstance();
+                layer.overrideValues().forEach(value => {
+                    if (context.data.items.objectAtIndex(i).availableOverride().overridePoint().name().isEqualToString(value.overrideName())) {
+                        text = value.value();
+                    }
+                });
+            }
+            else {
+                layer = context.data.items.objectAtIndex(i);
+                text = layer.stringValue();
+            }
             let expressionString = String(inputExpression.stringValue());
             let item;
             try {
@@ -588,6 +515,7 @@ export function onSupplyFriendlyDate (context) {
         'h:mm - 昨天 - 星期n - YYYY/M/d',
         '今天 hh:mm - 星期n hh:mm - M月d日 hh:mm'
     ];
+    let weekdays = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
 
     let dialog = ui.dialog('随机时间 -- 友好时间格式', '从起始时间至结束时间按顺序随机提取一个时间点，并计算此时间与起始的间隔。');
 
@@ -710,7 +638,7 @@ export function onSupplyFriendlyDate (context) {
                 return '昨天';
             }
             else if (interval < 86400 * 7) {
-                return DATA_DAYS[0]['data'][weekday];
+                return weekdays[weekday];
             }
             else {
                 return randomDate.toLocaleDateString();
@@ -727,7 +655,7 @@ export function onSupplyFriendlyDate (context) {
                 return '后天';
             }
             else if (interval > -86400 * 7) {
-                return DATA_DAYS[0]['data'][weekday];
+                return weekdays[weekday];
             }
             else {
                 return randomDate.toLocaleString();
@@ -748,7 +676,7 @@ export function onSupplyFriendlyDate (context) {
                 return `今天 ${hour}:${minute}`;
             }
             else if (interval < 86400 * 7) {
-                return `${DATA_DAYS[0]['data'][weekday]} ${hour}:${minute}`;
+                return `${weekdays[weekday]} ${hour}:${minute}`;
             }
             else {
                 return `${month}月${dateDay}日 ${hour}:${minute}`;
@@ -771,7 +699,8 @@ export function onSupplyFriendlyDate (context) {
 export function onSupplyFormatedDate (context) {
     let supportedLanguages = {
         "zh_Hans": "中文简体",
-        "zh_Hant": "中文繁體",
+        "zh_Hant_HK": "繁體, 香港澳门地区",
+        "zh_Hant_TW": "中文繁體, 台湾地区",
         "en_US": "英文"
     };
 
@@ -836,17 +765,98 @@ export function onSupplyFormatedDate (context) {
     }
 };
 
-export function onSupplyCalendar (context) {};
+// Calendar
+
+export function onSupplyCalendar (context) {
+    let supportedLanguages = {
+        'zh_Hans': '中文简体',
+        'zh_Hant': '中文繁體',
+        'en_US': '英语'
+    };
+
+    let dialog = ui.dialog('阳历', '按照起始日期生成连续日期。\n\n时间格式化规范请参考 http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Format_Patterns。');
+
+    let label1 = ui.label('语言');
+    dialog.addAccessoryView(label1);
+    let dateLanguage = ui.popupButton(Object.values(supportedLanguages));
+    let defaultDateLanguageIndex = Settings.settingForKey('calendar_language_index') || 0;
+    dateLanguage.selectItemAtIndex(defaultDateLanguageIndex);
+    dialog.addAccessoryView(dateLanguage);
+
+    let label2 = ui.label('日期格式');
+    dialog.addAccessoryView(label2);
+    let defaultDateFormat = Settings.settingForKey('calendar_date_format') || 'yyyy-MM-dd eeee';
+    let dateFormat = ui.input(defaultDateFormat);
+    dialog.addAccessoryView(dateFormat);
+
+    let label3 = ui.label('起始日期');
+    dialog.addAccessoryView(label3);
+    let startDate = ui.datePicker();
+    startDate.setDatePickerElements(NSYearMonthDayDatePickerElementFlag|NSYearMonthDatePickerElementFlag);
+    let defaultStartTimestamp = Settings.settingForKey('calendar_date_start');
+    if (defaultStartTimestamp) {
+        let defaultStartDate = date.timestampToNsDate(defaultStartTimestamp);
+        startDate.setDateValue(defaultStartDate);
+    }
+    let startDateView = ui.datePickerWithResetButton(startDate);
+    dialog.addAccessoryView(startDateView);
+
+    let label4 = ui.label('递增或递减');
+    dialog.addAccessoryView(label4);
+    let defaultIncreaseYear = Settings.settingForKey('calendar_increase_year') || 0;
+    let defaultIncreaseMonth = Settings.settingForKey('calendar_increase_month') || 0;
+    let defaultIncreaseDay = Settings.settingForKey('calendar_increase_day') || 1;
+    let increaseYear = ui.stepper(-100, 100, defaultIncreaseYear);
+    let increaseMonth = ui.stepper(-12, 12, defaultIncreaseMonth);
+    let increaseDay = ui.stepper(-30, 30, defaultIncreaseDay);
+    let increaseYearView = ui.stepperWithTextField(increaseYear);
+    let increaseMonthView = ui.stepperWithTextField(increaseMonth);
+    let increaseDayView = ui.stepperWithTextField(increaseDay);
+    let increaseStepperGroup = ui.stepperGroupWithThreeChild(
+        [increaseYearView, increaseMonthView, increaseDayView],
+        ['年', '月', '日']
+    );
+    dialog.addAccessoryView(increaseStepperGroup);
+
+    let responseCode = dialog.runModal();
+    if (responseCode === 1000) {
+        let startNsDate = startDate.dateValue();
+        let calendar = NSCalendar.alloc().initWithCalendarIdentifier(NSCalendarIdentifierGregorian);
+        let localeIdentifier = Object.keys(supportedLanguages)[dateLanguage.indexOfSelectedItem()];
+        let locale = NSLocale.alloc().initWithLocaleIdentifier(localeIdentifier);
+        for (let i = 0; i < context.data.requestedCount; i++) {
+            let dateComponents = NSDateComponents.alloc().init();
+            dateComponents.setYear(increaseYear.integerValue() * i);
+            dateComponents.setMonth(increaseMonth.integerValue() * i);
+            dateComponents.setDay(increaseDay.integerValue() * i);
+            let newNsDate = calendar.dateByAddingComponents_toDate_options(dateComponents, startNsDate, nil);
+            let formatter = NSDateFormatter.alloc().init();
+            formatter.setLocale(locale);
+            formatter.setDateFormat(dateFormat.stringValue());
+            let text = String(formatter.stringFromDate(newNsDate));
+            DataSupplier.supplyDataAtIndex(context.data.key, text, i);
+        }
+
+        let startDateTimestamp = date.nsDateToTimestamp(startNsDate);
+        Settings.setSettingForKey('calendar_language_index', dateLanguage.indexOfSelectedItem());
+        Settings.setSettingForKey('calendar_date_format', dateFormat.stringValue());
+        Settings.setSettingForKey('calendar_date_start', startDateTimestamp);
+        Settings.setSettingForKey('calendar_increase_year', increaseYear.integerValue());
+        Settings.setSettingForKey('calendar_increase_month', increaseMonth.integerValue());
+        Settings.setSettingForKey('calendar_increase_day', increaseDay.integerValue());
+    }
+};
 
 export function onSupplyChineseCalendar (context) {
     let supportedLanguages = {
-        "zh_Hans": "中文简体",
-        "zh_Hant": "中文繁體"
+        'zh_Hans': '简体',
+        'zh_Hant_TW': '繁體, 台湾地区',
+        'zh_Hant_HK': '繁體, 香港澳门地区'
     };
 
-    let dialog = ui.dialog('农历', '按照阳历起始日期生成连续农历日期，日期格式 "U" 表示干支纪年，"Z" 表示生肖，"M" 表示月，"D" 表示日。');
+    let dialog = ui.dialog('农历', '按照阳历起始日期生成连续农历日期，简体和台湾地区将十一月和十二月分别写作冬月和腊月。\n\n日期格式 "U" 表示干支纪年，"Z" 表示生肖，"M" 表示月，"D" 表示日。');
 
-    let label1 = ui.label('语言');
+    let label1 = ui.label('地区');
     dialog.addAccessoryView(label1);
     let dateLanguage = ui.popupButton(Object.values(supportedLanguages));
     let defaultDateLanguageIndex = Settings.settingForKey('chinese_calendar_language_index') || 0;
@@ -879,6 +889,13 @@ export function onSupplyChineseCalendar (context) {
     startDate.setCOSJSTargetFunction(sender => {
         localeIdentifier = Object.keys(supportedLanguages)[dateLanguage.indexOfSelectedItem()];
         startDateLunar = date.nsDateToChineseLunarDate(sender.dateValue(), localeIdentifier);
+        startDateLunarString = `${startDateLunar.year}年 (${startDateLunar.zodiac}年) ${startDateLunar.month}月${startDateLunar.day}`;
+        startDateLunarLabel.setStringValue(startDateLunarString);
+    });
+
+    dateLanguage.setCOSJSTargetFunction(sender => {
+        localeIdentifier = Object.keys(supportedLanguages)[dateLanguage.indexOfSelectedItem()];
+        startDateLunar = date.nsDateToChineseLunarDate(startDate.dateValue(), localeIdentifier);
         startDateLunarString = `${startDateLunar.year}年 (${startDateLunar.zodiac}年) ${startDateLunar.month}月${startDateLunar.day}`;
         startDateLunarLabel.setStringValue(startDateLunarString);
     });

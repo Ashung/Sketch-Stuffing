@@ -25,8 +25,9 @@ date.nsDateToTimestamp = function(nsDate) {
 
 date.nsDateToChineseLunarDate = function(nsDate, localeIdentifier) {
     let zodiacs = {
-        "zh_Hans": ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'],
-        "zh_Hant": ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬']
+        'zh_Hans': ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'],
+        'zh_Hant_HK': ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬'],
+        'zh_Hant_TW': ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬']
     };
     let formatter = NSDateFormatter.alloc().init();
     let locale = NSLocale.alloc().initWithLocaleIdentifier(localeIdentifier);
@@ -41,7 +42,8 @@ date.nsDateToChineseLunarDate = function(nsDate, localeIdentifier) {
     let monthInt = Number(calendar.component_fromDate(NSCalendarUnitMonth, nsDate));
     let dayInt = Number(calendar.component_fromDate(NSCalendarUnitDay, nsDate));
     let day = DATA_CHINESE_LUNAR_DAYS[dayInt - 1];
-    let zodiac = zodiacs[localeIdentifier][(yearInt - 1) % 12];
+    let supportZodiacLocaleIdentifer = Object.keys(zodiacs).includes(localeIdentifier) ? localeIdentifier : 'zh_Hans';
+    let zodiac = zodiacs[supportZodiacLocaleIdentifer][(yearInt - 1) % 12];
     return {
         'year': year,
         'zodiac': zodiac,
