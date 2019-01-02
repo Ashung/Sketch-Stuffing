@@ -50,6 +50,8 @@ export function onStartup () {
     DataSupplier.registerDataSupplier('public.image', '定制 - 从文件夹载入', 'SupplyImageFromFolder');
     DataSupplier.registerDataSupplier('public.text', '定制 - 从文件随机载入', 'SupplyRandomTextFromFile');
     DataSupplier.registerDataSupplier('public.image', '定制 - 从文件夹随机载入', 'SupplyRandomImageFromFolder');
+    DataSupplier.registerDataSupplier('public.image', '定制 - 从选择图片载入', 'SupplyImageFromFile');
+    DataSupplier.registerDataSupplier('public.image', '定制 - 从选择图片随机载入', 'SupplyRandomImageFromFile');
 }
 
 export function onShutdown () {
@@ -501,6 +503,20 @@ export function onSupplyRandomTextFromFile (context) {
 
 export function onSupplyRandomImageFromFolder (context) {
     let images = sys.imagesFromChooseFolder();
+    if (images.length > 0) {
+        supplyRandomData(context, images);
+    }
+};
+
+export function onSupplyImageFromFile (context) {
+    let images = sys.imagesFromChooseFile();
+    if (images.length > 0) {
+        supplyOrderedData(context, images);
+    }
+};
+
+export function onSupplyRandomImageFromFile (context) {
+    let images = sys.imagesFromChooseFile();
     if (images.length > 0) {
         supplyRandomData(context, images);
     }

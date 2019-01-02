@@ -1,4 +1,7 @@
+const util = require('util');
+
 const system = {};
+const supportImageFormats = ['png', 'jpg', 'jpeg', 'tif', 'tiff', 'gif', 'webp', 'bmp', 'heic'];
 
 system.chooseFile = function() {
     let panel = NSOpenPanel.openPanel();
@@ -37,12 +40,11 @@ system.textsFromFile = function(path) {
 
 system.imagesFromFolder = function(path) {
     let images = [];
-    let supportFormats = ['png', 'jpg', 'jpeg', 'tif', 'tiff', 'gif', 'webp', 'bmp'];
     let fileManager = NSFileManager.defaultManager();
     let fileList = fileManager.contentsOfDirectoryAtPath_error(path, nil);
     fileList = fileList.sortedArrayUsingSelector("localizedStandardCompare:");
     fileList.forEach(function(file) {
-        if (supportFormats.indexOf(String(file.pathExtension().lowercaseString())) != -1) {
+        if (supportImageFormats.indexOf(String(file.pathExtension().lowercaseString())) != -1) {
             images.push(path + '/' + file);
         }
     });
@@ -64,6 +66,23 @@ system.imagesFromChooseFolder = function() {
         return [];
     } else {
         return this.imagesFromFolder(imageFolder);
+    }
+};
+
+system.imagesFromChooseFile = function() {
+    let panel = NSOpenPanel.openPanel();
+    panel.setCanChooseDirectories(false);
+    panel.setCanChooseFiles(true);
+    panel.setCanCreateDirectories(false);
+    panel.setAllowedFileTypes(supportImageFormats);
+    panel.setAllowsMultipleSelection(true);
+    if (panel.runModal() == NSOKButton) {
+        let fileList = NSMutableArray.alloc().init();
+        panel.URLs().forEach(item => {
+            fileList.addObject(item.path());
+        });
+        fileList = fileList.sortedArrayUsingSelector("localizedStandardCompare:");
+        return util.toArray(fileList);
     }
 };
 
