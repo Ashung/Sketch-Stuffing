@@ -452,7 +452,7 @@ export function onSupplyExpression (context) {
         for (let i = 0; i < length; i++) {
             let layer;
             let text;
-            if (context.data.isSymbolInstanceOverride) {
+            if (context.data.isSymbolInstanceOverride == true) {
                 layer = context.data.items.objectAtIndex(i).symbolInstance();
                 layer.overrideValues().forEach(value => {
                     if (context.data.items.objectAtIndex(i).availableOverride().overridePoint().name().isEqualToString(value.overrideName())) {
