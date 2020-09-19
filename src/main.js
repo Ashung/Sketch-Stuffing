@@ -52,6 +52,7 @@ export function onStartup () {
     DataSupplier.registerDataSupplier('public.image', '定制 - 从文件夹随机载入', 'SupplyRandomImageFromFolder');
     DataSupplier.registerDataSupplier('public.image', '定制 - 从选择图片载入', 'SupplyImageFromFile');
     DataSupplier.registerDataSupplier('public.image', '定制 - 从选择图片随机载入', 'SupplyRandomImageFromFile');
+    DataSupplier.registerDataSupplier('public.text', '定制 - 从输入插入', 'SupplyRandomStringFromInput');
 }
 
 export function onShutdown () {
@@ -1006,3 +1007,26 @@ function supplyRandomData(context, data) {
         DataSupplier.supplyDataAtIndex(context.data.key, data[Math.floor(Math.random() * data.length)], i);
     }
 }
+
+//
+export function onSupplyRandomStringFromInput (context) {
+
+    let dialog = ui.dialog('从输入随机', '使用空格分隔字符。');
+
+    let input = ui.input('');
+    input.setFrameSize(CGSizeMake(300, 100));
+    dialog.addAccessoryView(input);
+
+    let random = ui.checkbox(true, '随机插入');
+    dialog.addAccessoryView(random);
+
+    let responseCode = dialog.runModal();
+    if (responseCode === 1000) {
+        let texts = String(input.stringValue()).split(/\s+/);
+        if (random.state()) {
+            supplyRandomData(context, texts);
+        } else {
+            supplyOrderedData(context, texts, 0);
+        }
+    }
+};

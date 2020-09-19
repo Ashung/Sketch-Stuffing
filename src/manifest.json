@@ -45,7 +45,8 @@
                     "SupplyRandomTextFromFile": "onSupplyRandomTextFromFile",
                     "SupplyRandomImageFromFolder": "onSupplyRandomImageFromFolder",
                     "SupplyImageFromFile": "onSupplyImageFromFile",
-                    "SupplyRandomImageFromFile": "onSupplyRandomImageFromFile"
+                    "SupplyRandomImageFromFile": "onSupplyRandomImageFromFile",
+                    "SupplyRandomStringFromInput": "onSupplyRandomStringFromInput"
                 }
             }
         }

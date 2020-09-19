@@ -1,6 +1,6 @@
 {
   "name": "stuffing",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "A DataSupplier plugin which supplies chinese data.",
   "engines": {
     "sketch": ">=3.0"
