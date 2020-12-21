@@ -53,6 +53,7 @@ export function onStartup () {
     DataSupplier.registerDataSupplier('public.image', '定制 - 从选择图片载入', 'SupplyImageFromFile');
     DataSupplier.registerDataSupplier('public.image', '定制 - 从选择图片随机载入', 'SupplyRandomImageFromFile');
     DataSupplier.registerDataSupplier('public.text', '定制 - 从输入插入', 'SupplyRandomStringFromInput');
+    DataSupplier.registerDataSupplier('public.text', '数字 - 随机', 'SupplyRandomNumber');
 }
 
 export function onShutdown () {
@@ -1008,12 +1009,11 @@ function supplyRandomData(context, data) {
     }
 }
 
-//
 export function onSupplyRandomStringFromInput (context) {
+    let dialog = ui.dialog('从输入随机', '使用换行分隔字符，按下 option - enter 以换行。');
 
-    let dialog = ui.dialog('从输入随机', '使用空格分隔字符。');
-
-    let input = ui.input('');
+    let defaultInput = Settings.settingForKey('random_string_from_input') || '';
+    let input = ui.input(defaultInput);
     input.setFrameSize(CGSizeMake(300, 100));
     dialog.addAccessoryView(input);
 
@@ -1022,11 +1022,75 @@ export function onSupplyRandomStringFromInput (context) {
 
     let responseCode = dialog.runModal();
     if (responseCode === 1000) {
-        let texts = String(input.stringValue()).split(/\s+/);
+        let texts = String(input.stringValue()).split(/\n+/);
         if (random.state()) {
             supplyRandomData(context, texts);
         } else {
             supplyOrderedData(context, texts, 0);
         }
+        Settings.setSettingForKey('random_string_from_input', input.stringValue());
+    }
+};
+
+export function onSupplyRandomNumber (context) {
+    let dialog = ui.dialog('随机数字');
+    let defaultMin = Settings.settingForKey('random_number_min') || 1;
+    let defaultMax = Settings.settingForKey('random_number_max') || 100;
+    let defaultDecimal = Settings.settingForKey('random_number_decimal') || 0;
+    let defaultPrefix = Settings.settingForKey('random_number_prefix') || '';
+    let defaultSuffix = Settings.settingForKey('random_number_suffix') || '';
+
+    let label0 = ui.label('最小值 (只允许整数)');
+    dialog.addAccessoryView(label0);
+    let inputMin = ui.numberInput(defaultMin);
+    dialog.addAccessoryView(inputMin);
+
+    let label1 = ui.label('最大值 (只允许整数)');
+    dialog.addAccessoryView(label1);
+    let inputMax = ui.numberInput(defaultMax);
+    dialog.addAccessoryView(inputMax);
+
+    let label2 = ui.label('小数精度');
+    dialog.addAccessoryView(label2);
+    let inputDecimal = ui.stepper(0, 10, parseInt(defaultDecimal));
+    let inputDecimalView = ui.stepperWithTextField(inputDecimal);
+    dialog.addAccessoryView(inputDecimalView);
+
+    let formatThousand = ui.checkbox(false, '显示千位分隔符');
+    dialog.addAccessoryView(formatThousand);
+
+    let label3 = ui.label('前缀');
+    dialog.addAccessoryView(label3);
+    let inputPrefix = ui.input(defaultPrefix);
+    dialog.addAccessoryView(inputPrefix);
+
+    let label4 = ui.label('后缀');
+    dialog.addAccessoryView(label4);
+    let inputSuffix = ui.input(defaultSuffix);
+    dialog.addAccessoryView(inputSuffix);
+
+    let responseCode = dialog.runModal();
+    if (responseCode === 1000) {
+        let min = parseInt(inputMin.stringValue());
+        let max = parseInt(inputMax.stringValue());
+        let prefix = inputPrefix.stringValue();
+        let suffix = inputSuffix.stringValue();
+        for (let i = 0; i < context.data.requestedCount; i++) {
+            let n = Math.random() * (max - min + 1) + min;
+            if (inputDecimal.integerValue() === 0) {
+                n = Math.floor(n);
+            } else {
+                n = n.toFixed(inputDecimal.integerValue());
+            }
+            if (formatThousand.state()) {
+                n = Number(n).toLocaleString();
+            }
+            DataSupplier.supplyDataAtIndex(context.data.key, `${prefix}${n}${suffix}`, i);
+        }
+        Settings.setSettingForKey('random_number_min', min);
+        Settings.setSettingForKey('random_number_max', max);
+        Settings.setSettingForKey('random_number_decimal', inputDecimal.integerValue());
+        Settings.setSettingForKey('sequence_number_prefix', prefix);
+        Settings.setSettingForKey('sequence_number_suffix', suffix);
     }
 };
